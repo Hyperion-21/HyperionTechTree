@@ -1,4 +1,4 @@
-
+/*
 
 using BepInEx;
 using BepInEx.Logging;
@@ -63,3 +63,5 @@ public class HyperionJsonReader
         _reader = new(new StringReader(_jsonFilePath));
     } 
 }
+
+*/

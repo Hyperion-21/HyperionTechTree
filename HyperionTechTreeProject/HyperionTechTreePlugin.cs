@@ -35,14 +35,14 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private const string ToolbarFlightButtonID = "BTN-HyperionTechTreeFlight";
     private const string ToolbarOABButtonID = "BTN-HyperionTechTreeOAB";
 
-    private static HyperionJsonReader _reader;
+    private static JsonTextReader _reader;
+    private static string _jsonFilePath;
+
     private string DefaultTechTreeFilePath => $"{PluginFolderPath}/Tech Tree/TechTree.json";
 
-    // idk how loggers work. HyperionLog is designed for other classes to use it without needing BepInEx shenanigans in that class. Recommended to use _logger if working with this project.
-    internal static ManualLogSource HyperionLog;
     private static ManualLogSource _logger;
 
-    private static JsonTextReader _testreader;
+    // private static JsonTextReader _testreader;
 
     public static HyperionTechTreePlugin Instance { get; set; }
 
@@ -52,9 +52,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     public override void OnInitialized()
     {
         base.OnInitialized();
-
-        HyperionLog = Logger;
-        _logger = HyperionLog;
+        _logger = Logger;
 
         Instance = this;
 
@@ -107,10 +105,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         //Logger.LogInfo($"Option 1: {configValue.Value}");
 
         // Change this later to support multiple files
-        _testreader = new(new StringReader(File.ReadAllText(DefaultTechTreeFilePath)));
-
         _logger.LogInfo($"Creating json reader from {DefaultTechTreeFilePath}");
-        if (File.Exists(DefaultTechTreeFilePath)) _reader = new(DefaultTechTreeFilePath);
+        if (File.Exists(DefaultTechTreeFilePath)) CreateJsonReader(DefaultTechTreeFilePath);
         else _logger.LogInfo($"Could not find file at {DefaultTechTreeFilePath}!");
 
     }
@@ -142,18 +138,82 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     /// <param name="windowID"></param>
     private static void FillWindow(int windowID)
     {
-        _testreader.Read();
-
-        string nodeID = (string)_reader.GetValueFromKey("nodeID");
-        _logger.LogInfo(nodeID);
+        //string nodeID = (string)GetValueFromKey("nodeID");
+        //_logger.LogInfo(nodeID);
         
         //string[] dependencies = (string[])_reader.GetValueFromKey("dependencies");
         //string[] parts = (string[])_reader.GetValueFromKey("parts");
 
-        GUILayout.Label($"First Node ID: {nodeID}");
+        //GUILayout.Label($"First Node ID: {nodeID}");
         //GUILayout.Label(dependencies.Length > 0 ? $"First Node First Dependency: {dependencies[0]}" : "There are no dependencies for this node!");
         //GUILayout.Label(parts.Length > 0 ? $"First Node First Part: {parts[0]}" : "There are no parts for this node!");
 
         GUI.DragWindow(new Rect(0, 0, 10000, 500));
     }
+
+
+
+
+
+
+    /// <summary>
+    /// A json reader class made by Hyperion_21. Construct using a file path to the target .json file.
+    /// </summary>
+    /// <param name="jsonFilePath"></param>
+    private void CreateJsonReader(string jsonFilePath)
+    {
+        _jsonFilePath = jsonFilePath;
+        var jsonString = File.ReadAllText(_jsonFilePath);
+        dynamic jsonObject = JsonConvert.DeserializeObject(jsonString);
+        //_logger.LogInfo($"Print of first nodeID: {jsonObject.nodes[0].nodeID}");
+
+        foreach (var node in jsonObject.nodes)
+        {
+            _logger.LogInfo($"Found nodeID {node.nodeID}!");
+        }
+        
+
+        //_reader = new(new StringReader(jsonString));
+        //_logger.LogInfo($"jsonString: {jsonString}");
+
+
+    }
+
+    /*
+    /// <summary>
+    /// Inputs a key to look for in the .json, and returns that key's value. Return type depends on the key, so explicit casts may be needed!
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns name="value"></returns>
+    private static object GetValueFromKey(string key)
+    {
+        if (string.IsNullOrEmpty(key))
+        {
+            _logger.LogError("Could not run GetValueFromKey! Returning null.");
+            return null;
+        }
+        _logger.LogInfo($"GetValueFromKey run for key {key}.");
+        while (_reader.Read())
+        {
+            if (_reader.Value == null) continue;
+            if (_reader.Value.ToString() == key)
+            {
+                break;
+            }
+        }
+        _reader.Read();
+        var value = _reader.Value;
+        _logger.LogInfo($"Found value {value}!");
+        ResetJsonReader();
+        return value;
+    }
+
+    private static void ResetJsonReader()
+    {
+        _logger.LogInfo("Attempting to reset json reader!");
+        _reader.Close();
+        //_reader = null;
+        _reader = new(new StringReader(_jsonFilePath));
+    }
+    */
 }
