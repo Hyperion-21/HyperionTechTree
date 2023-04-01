@@ -1,0 +1,22 @@
+{
+  "mod_id": "hyperion_tech_tree",
+  "author": "Hyperion_21",
+  "name": "Hyperion Tech Tree",
+  "description": "A modded tech tree independent of the stock KSP2 tech system.",
+  "source": "REPLACE THIS WITH LINK ONCE REPO IS CREATED!",
+  "version": "0.0.1",
+  "version_check": "",
+  "dependencies": [
+    {
+      "id":  "SpaceWarp",
+      "version": {
+        "min": "1.0.1",
+        "max": "*"
+      }
+    }
+  ],
+  "ksp2_version": {
+    "min": "0.1.0",
+    "max": "*"
+  }
+}
