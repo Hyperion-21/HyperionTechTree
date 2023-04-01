@@ -1,0 +1,23 @@
+{
+    "modVersion": "0.0.1",
+    "nodes": [
+        {
+            "nodeID": "Start",
+            "dependencies": [],
+            "requiresAll": false,
+            "parts": [ "stabilizer_1v_procedural_light", "pod_1v_conical_crew", "booster_1v_solid_flea", "parachute_0v" ]
+        },
+        {
+            "nodeID": "Basic Rocketry",
+            "dependencies": [ "Start" ],
+            "requiresAll": false,
+            "parts": [ "engine_1v_methalox_swivel", "booster_1v_solid_hammer", "fueltank_1v_inline_methalox_1x1" ]
+        },
+        {
+            "nodeID": "Engineering 101",
+            "dependencies": [ "Start" ],
+            "requiresAll": false,
+            "parts": [ "decoupler_1v_inline", "antenna_0v_16", "antenna_0v_16s" ]
+        }
+    ]
+}
