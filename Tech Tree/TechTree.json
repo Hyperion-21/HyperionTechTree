@@ -5,19 +5,41 @@
             "nodeID": "Start",
             "dependencies": [],
             "requiresAll": false,
-            "parts": [ "stabilizer_1v_procedural_light", "pod_1v_conical_crew", "booster_1v_solid_flea", "parachute_0v" ]
+            "posx": 10,
+            "posy": 100,
+            "parts": [ "fin_0v_procedural", "pod_1v_conical_crew", "booster_1v_solid_flea", "parachute_0v" ],
+            "cost": 0,
+            "unlockedInitially": true
         },
         {
             "nodeID": "Basic Rocketry",
             "dependencies": [ "Start" ],
             "requiresAll": false,
-            "parts": [ "engine_1v_methalox_swivel", "booster_1v_solid_hammer", "fueltank_1v_inline_methalox_1x1" ]
+            "posx": 110,
+            "posy": 50,
+            "parts": [ "engine_1v_methalox_swivel", "booster_1v_solid_hammer", "fueltank_1v_inline_methalox_1x1" ],
+            "cost": 5,
+            "unlockedInitially": false
         },
         {
             "nodeID": "Engineering 101",
             "dependencies": [ "Start" ],
             "requiresAll": false,
-            "parts": [ "decoupler_1v_inline", "antenna_0v_16", "antenna_0v_16s" ]
+            "posx": 110,
+            "posy": 150,
+            "parts": [ "decoupler_1v_inline", "antenna_0v_16", "antenna_0v_16s" ],
+            "cost": 5,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "baka",
+            "dependencies": [ "Basic Rocketry", "Engineering 101" ],
+            "requiresAll": false,
+            "posx": 210,
+            "posy": 100,
+            "parts": [],
+            "cost": 69,
+            "unlockedInitially": false
         }
     ]
 }

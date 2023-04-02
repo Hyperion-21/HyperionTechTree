@@ -12,6 +12,9 @@ using UnityEngine;
 using BepInEx.Logging;
 using System.Runtime.InteropServices.ComTypes;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using static GUIUtil;
+using KSP.OAB;
 
 namespace HyperionTechTree;
 
@@ -30,13 +33,23 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     public const string ModVer = MyPluginInfo.PLUGIN_VERSION;
     
     private bool _isWindowOpen;
-    private Rect _windowRect;
+    private Rect _windowRect = new Rect(Screen.width / 2, Screen.height / 2, WindowWidth, WindowHeight);
+    private const float WindowHeight = 350;
+    private const float WindowWidth = 1000;
 
     private const string ToolbarFlightButtonID = "BTN-HyperionTechTreeFlight";
     private const string ToolbarOABButtonID = "BTN-HyperionTechTreeOAB";
 
     private static JsonTextReader _reader;
     private static string _jsonFilePath;
+    private static TechTree _jsonObject;
+
+    private static Dictionary<string, bool> _techsObtained = new();
+    private static List<TechTreeNode> _techTreeNodes = new();
+
+    private static TechTreeNode _focusedNode = null;
+
+    private static List<AssemblyPartsButton> _assemblyPartsButtons = new();
 
     private string DefaultTechTreeFilePath => $"{PluginFolderPath}/Tech Tree/TechTree.json";
 
@@ -83,33 +96,18 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         // Register all Harmony patches in the project
         Harmony.CreateAndPatchAll(typeof(HyperionTechTreePlugin).Assembly);
 
-        //// Try to get the currently active vessel, set its throttle to 100% and toggle on the landing gear
-        //// (might use part of this code later for science point awarding)
-        //try
-        //{
-        //    var currentVessel = Vehicle.ActiveVesselVehicle;
-        //    if (currentVessel != null)
-        //    {
-        //        currentVessel.SetMainThrottle(1.0f);
-        //        currentVessel.SetGearState(true);
-        //    }
-        //}
-        //
-        //catch (Exception e) {}
-
-        // Fetch a configuration value or create a default one if it does not exist
-        //var defaultValue = "my_value";
-        //var configValue = Config.Bind<string>("Settings section", "Option 1", defaultValue, "Option description");
-
-        //// Log the config value into <KSP2 Root>/BepInEx/LogOutput.log
-        //Logger.LogInfo($"Option 1: {configValue.Value}");
-
         // Change this later to support multiple files
         _logger.LogInfo($"Creating json reader from {DefaultTechTreeFilePath}");
         if (File.Exists(DefaultTechTreeFilePath)) CreateJsonReader(DefaultTechTreeFilePath);
         else _logger.LogInfo($"Could not find file at {DefaultTechTreeFilePath}!");
 
+        GenerateTechs();
     }
+
+    //void Update()
+    //{
+    //    foreach (AssemblyPartsButton assemblyPartsButton in _assemblyPartsButtons) PartHider(assemblyPartsButton);
+    //}
 
     /// <summary>
     /// Draws a simple UI window when <code>this._isWindowOpen</code> is set to <code>true</code>.
@@ -126,8 +124,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 _windowRect,
                 FillWindow,
                 "Hyperion Tech Tree",
-                GUILayout.Height(350),
-                GUILayout.Width(350)
+                GUILayout.Height(WindowHeight),
+                GUILayout.Width(WindowWidth)
             );
         }
     }
@@ -138,23 +136,82 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     /// <param name="windowID"></param>
     private static void FillWindow(int windowID)
     {
-        //string nodeID = (string)GetValueFromKey("nodeID");
-        //_logger.LogInfo(nodeID);
-        
-        //string[] dependencies = (string[])_reader.GetValueFromKey("dependencies");
-        //string[] parts = (string[])_reader.GetValueFromKey("parts");
+        Color defaultColor = GUI.backgroundColor;
+        foreach (var node in _techTreeNodes)
+        {
+            GUI.backgroundColor = _techsObtained[node.NodeID] ? Color.green : Color.red;
+            if (GUI.Button(new Rect(node.PosX, node.PosY, 50, 50), $"{node.NodeID}"))
+            {
+                _focusedNode = node;
+            }
+        }
+        GUI.backgroundColor = defaultColor;
+        GUILayout.Space(200);
+        if (_focusedNode != null) 
+        {
+            GUILayout.Label($"Selected Node: {_focusedNode.NodeID}");
 
-        //GUILayout.Label($"First Node ID: {nodeID}");
-        //GUILayout.Label(dependencies.Length > 0 ? $"First Node First Dependency: {dependencies[0]}" : "There are no dependencies for this node!");
-        //GUILayout.Label(parts.Length > 0 ? $"First Node First Part: {parts[0]}" : "There are no parts for this node!");
+            string requirementPrefix = _focusedNode.RequiresAll ? "Requires All: " : "Requires Any: ";
+            string dependencyList = "";
+            int i = _focusedNode.Dependencies.Count;
+            foreach (var dependency in _focusedNode.Dependencies)
+            {
+                dependencyList = String.Concat(dependencyList, dependency);
+                i--;
+                if (i > 0) dependencyList = String.Concat(dependencyList, ", ");
+            }
+            GUILayout.Label(requirementPrefix + dependencyList);
+
+            string partList = "";
+            i = _focusedNode.Parts.Count;
+            foreach (var part in _focusedNode.Parts)
+            {
+                partList = String.Concat(partList, part);
+                i--;
+                if (i > 0) partList = String.Concat(partList, ", ");
+            }
+            GUILayout.Label("Unlocks Parts: " + partList);
+
+            //if (GUILayout.Button(new Rect(10, 0, WindowWidth - 20, 50), $"Unlock Tech (Costs ${_focusedNode.Cost} Tech Points"))
+            if (_techsObtained[_focusedNode.NodeID])
+            {
+                GUILayout.Label("You already own this tech!");
+            }
+            else
+            {
+                bool skipButtonFlag = false;
+                int j = _focusedNode.Dependencies.Count;
+                foreach (var dependency in _focusedNode.Dependencies)
+                {
+                    if (!_techsObtained[dependency])
+                    {
+                        j--;
+                        if (_focusedNode.RequiresAll)
+                        {
+                            skipButtonFlag = true;
+                            GUILayout.Label($"Missing dependency {_focusedNode.NodeID}!");
+                        }
+                        if (!_focusedNode.RequiresAll && j == 0)
+                        {
+                            skipButtonFlag = true;
+                            GUILayout.Label("Missing all dependencies!");
+                        }
+                    }
+                }
+                if (!skipButtonFlag) if (GUILayout.Button($"Unlock Tech (Costs {_focusedNode.Cost} Tech Points)"))
+                {
+                    _techsObtained[_focusedNode.NodeID] = true;
+                }
+            }
+            
+        }
+        else
+        {
+            GUILayout.Label("No nodes selected! Click on a node to bring up information!");
+        }
 
         GUI.DragWindow(new Rect(0, 0, 10000, 500));
     }
-
-
-
-
-
 
     /// <summary>
     /// A json reader class made by Hyperion_21. Construct using a file path to the target .json file.
@@ -164,56 +221,100 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     {
         _jsonFilePath = jsonFilePath;
         var jsonString = File.ReadAllText(_jsonFilePath);
-        dynamic jsonObject = JsonConvert.DeserializeObject(jsonString);
-        //_logger.LogInfo($"Print of first nodeID: {jsonObject.nodes[0].nodeID}");
-
-        foreach (var node in jsonObject.nodes)
-        {
-            _logger.LogInfo($"Found nodeID {node.nodeID}!");
-        }
-        
-
-        //_reader = new(new StringReader(jsonString));
-        //_logger.LogInfo($"jsonString: {jsonString}");
-
-
+        _jsonObject = JsonConvert.DeserializeObject<TechTree>(jsonString);
     }
 
-    /*
     /// <summary>
-    /// Inputs a key to look for in the .json, and returns that key's value. Return type depends on the key, so explicit casts may be needed!
+    /// Finalizes the tech tree, reading all .json files in {PluginFolderPath}/Tech Tree and merges them. Any new parameters 
     /// </summary>
-    /// <param name="key"></param>
-    /// <returns name="value"></returns>
-    private static object GetValueFromKey(string key)
+    private void GenerateTechs()
     {
-        if (string.IsNullOrEmpty(key))
+        foreach (string file in Directory.GetFiles($"{PluginFolderPath}/Tech Tree"))
         {
-            _logger.LogError("Could not run GetValueFromKey! Returning null.");
-            return null;
-        }
-        _logger.LogInfo($"GetValueFromKey run for key {key}.");
-        while (_reader.Read())
-        {
-            if (_reader.Value == null) continue;
-            if (_reader.Value.ToString() == key)
+            _logger.LogInfo($"Found tech tree! {file}");
+            CreateJsonReader(file);
+            foreach (var node in _jsonObject.Nodes)
             {
-                break;
+                if (_techTreeNodes.Exists(item => item.NodeID == node.NodeID))
+                {
+                    _logger.LogWarning($"Found multiple nodes with ID {(string)node.NodeID}! Ignoring the one defined in {file}");
+                    continue;
+                }
+                _techTreeNodes.Add(node);
+                _techsObtained.Add(node.NodeID, node.UnlockedInitially);
+
+                //Dictionary<string, object> nodeData = new()
+                //{
+                //    { "dependencies", node.dependencies },
+                //    { "requiresAll", node.requiresAll },
+                //    { "posx", node.posx },
+                //    { "posy", node.posy },
+                //    { "parts", node.parts },
+                //    { "obtained", false }
+                //};
+                //_techTreeNodes.Add((string)node.nodeID, nodeData);
             }
         }
-        _reader.Read();
-        var value = _reader.Value;
-        _logger.LogInfo($"Found value {value}!");
-        ResetJsonReader();
-        return value;
     }
 
-    private static void ResetJsonReader()
+
+    [JsonObject(MemberSerialization.OptIn)]
+    public class TechTree
     {
-        _logger.LogInfo("Attempting to reset json reader!");
-        _reader.Close();
-        //_reader = null;
-        _reader = new(new StringReader(_jsonFilePath));
+        [JsonProperty("modVersion")] public string ModVersion { get; set; }
+        [JsonProperty("nodes")] public List<TechTreeNode> Nodes { get; set; }
     }
-    */
+
+    [JsonObject(MemberSerialization.OptIn)]
+    public class TechTreeNode
+    {
+        [JsonProperty("nodeID")] public string NodeID { get; set; }
+        [JsonProperty("dependencies")] public List<string> Dependencies { get; set; }
+        [JsonProperty("requiresAll")] public bool RequiresAll { get; set; }
+        [JsonProperty("posx")] public float PosX { get; set; }
+        [JsonProperty("posy")] public float PosY { get; set; }
+        [JsonProperty("parts")] public List<string> Parts { get; set; }
+        [JsonProperty("cost")] public int Cost { get; set; }
+        [JsonProperty("unlockedInitially")] public bool UnlockedInitially { get; set; }
+    }
+
+    // Parts of this code are copy-pasted from VChristof's InteractiveFilter mod
+    [HarmonyPatch(typeof(AssemblyFilterContainer), nameof(AssemblyFilterContainer.AddButton))]
+    class PatchAssemblyFilterContainer
+    {
+        [HarmonyPostfix]
+        static void AddButton(ref GameObject btn)
+        {
+            try
+            {
+                PartHider(btn.GetComponent<AssemblyPartsButton>());
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.Message);
+            }
+        }
+    }
+
+    private static void PartHider(AssemblyPartsButton assemblyPartsButton)
+    {
+        if (!_assemblyPartsButtons.Contains(assemblyPartsButton))
+        {
+            _assemblyPartsButtons.Add(assemblyPartsButton);
+        }
+        assemblyPartsButton.gameObject.SetActive(false);
+        foreach (var node in _techTreeNodes)
+        {
+            if (!_techsObtained[node.NodeID]) continue;
+            foreach (var part in node.Parts)
+            {
+                if (part == assemblyPartsButton.part.Name)
+                {
+                    assemblyPartsButton.gameObject.SetActive(true);
+                }
+            }
+        }
+    }
+
+
 }
