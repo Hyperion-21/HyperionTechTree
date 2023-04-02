@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using static GUIUtil;
 using KSP.OAB;
+using I2.Loc;
 
 namespace HyperionTechTree;
 
@@ -33,14 +34,14 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     public const string ModVer = MyPluginInfo.PLUGIN_VERSION;
     
     private bool _isWindowOpen;
-    private Rect _windowRect = new Rect(Screen.width / 2, Screen.height / 2, WindowWidth, WindowHeight);
-    private const float WindowHeight = 350;
+    private Rect _windowRect = new(0, 0, WindowWidth, WindowHeight);
+    private const float WindowHeight = 400;
     private const float WindowWidth = 1000;
+    private const float ButtonSize = 36;
 
     private const string ToolbarFlightButtonID = "BTN-HyperionTechTreeFlight";
     private const string ToolbarOABButtonID = "BTN-HyperionTechTreeOAB";
 
-    private static JsonTextReader _reader;
     private static string _jsonFilePath;
     private static TechTree _jsonObject;
 
@@ -52,6 +53,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static List<AssemblyPartsButton> _assemblyPartsButtons = new();
 
     private string DefaultTechTreeFilePath => $"{PluginFolderPath}/Tech Tree/TechTree.json";
+    private static string _path;
+    private static string _swPath;
 
     private static ManualLogSource _logger;
 
@@ -66,6 +69,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     {
         base.OnInitialized();
         _logger = Logger;
+        _path = PluginFolderPath;
+        _swPath = SpaceWarpMetadata.ModID;
 
         Instance = this;
 
@@ -139,19 +144,60 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         Color defaultColor = GUI.backgroundColor;
         foreach (var node in _techTreeNodes)
         {
-            GUI.backgroundColor = _techsObtained[node.NodeID] ? Color.green : Color.red;
-            if (GUI.Button(new Rect(node.PosX, node.PosY, 50, 50), $"{node.NodeID}"))
+            foreach (var dependency in node.Dependencies)
+            {
+                DrawLine(node.PosX + (ButtonSize / 2), node.PosY + (ButtonSize / 2), _techTreeNodes.Find(x => x.NodeID == dependency).PosX + (ButtonSize / 2), _techTreeNodes.Find(x => x.NodeID == dependency).PosY + (ButtonSize / 2));
+            }
+        }
+
+        foreach (var node in _techTreeNodes)
+        {
+            if (_techsObtained[node.NodeID]) GUI.backgroundColor = Color.green;
+            else
+            {
+                GUI.backgroundColor = Color.red;
+                int i = node.Dependencies.Count;
+                foreach (var dependency in node.Dependencies)
+                {
+                    if (!_techsObtained[dependency])
+                    {
+                        i--;
+                        if (node.RequiresAll)
+                        {
+                            GUI.backgroundColor = Color.gray;
+                        }
+                        if (!node.RequiresAll && i == 0)
+                        {
+                            GUI.backgroundColor = Color.gray;
+                        }
+                    }
+                    
+                }
+            }
+
+            Texture2D texture;
+            if (File.Exists($"{_path}/assets/images/{node.NodeID}.png")) texture = AssetManager.GetAsset<Texture2D>($"{_swPath}/images/{node.NodeID}.png");
+            else
+            {
+                //_logger.LogWarning($"Could not find button texture for node {node.NodeID}!");
+                texture = Texture2D.blackTexture;
+            }
+
+            if (GUI.Button(new Rect(node.PosX, node.PosY, ButtonSize, ButtonSize), texture))
             {
                 _focusedNode = node;
             }
         }
         GUI.backgroundColor = defaultColor;
-        GUILayout.Space(200);
+        GUILayout.Space(900);
         if (_focusedNode != null) 
         {
             GUILayout.Label($"Selected Node: {_focusedNode.NodeID}");
 
-            string requirementPrefix = _focusedNode.RequiresAll ? "Requires All: " : "Requires Any: ";
+            string requirementPrefix;
+            if (_focusedNode.Dependencies.Count > 1) requirementPrefix = _focusedNode.RequiresAll ? "Requires All: " : "Requires Any: ";
+            else requirementPrefix = "Requires: ";
+            
             string dependencyList = "";
             int i = _focusedNode.Dependencies.Count;
             foreach (var dependency in _focusedNode.Dependencies)
@@ -166,7 +212,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             i = _focusedNode.Parts.Count;
             foreach (var part in _focusedNode.Parts)
             {
-                partList = String.Concat(partList, part);
+                LocalizedString partName = $"Parts/Title/{part}";
+                partList = String.Concat(partList, partName.ToString());
                 i--;
                 if (i > 0) partList = String.Concat(partList, ", ");
             }
@@ -189,7 +236,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                         if (_focusedNode.RequiresAll)
                         {
                             skipButtonFlag = true;
-                            GUILayout.Label($"Missing dependency {_focusedNode.NodeID}!");
+                            GUILayout.Label($"Missing dependency {dependency}!");
                         }
                         if (!_focusedNode.RequiresAll && j == 0)
                         {
@@ -316,5 +363,23 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         }
     }
 
+    /// <summary>
+    /// Draws a line between two points on the UI.
+    /// </summary>
+    /// <param name="x1"></param>
+    /// <param name="y1"></param>
+    /// <param name="x2"></param>
+    /// <param name="y2"></param>
+    private static void DrawLine(double x1, double y1, double x2, double y2)
+    {
+        // trig time!
+        double adjacent = x2 - x1;
+        double opposite = y2 - y1;
 
+        double length = Math.Sqrt(Math.Pow(adjacent, 2) + Math.Pow(opposite, 2));
+        GUI.backgroundColor = Color.white;
+        GUIUtility.RotateAroundPivot((float)((Math.Atan(opposite / adjacent) * (180 / Math.PI)) + 180), new Vector2((float)x1, (float)y1));
+        GUI.DrawTexture(new Rect((float)x1, (float)y1, (float)length, 2), Texture2D.whiteTexture);
+        GUIUtility.RotateAroundPivot((float)-((Math.Atan(opposite / adjacent) * (180 / Math.PI)) + 180), new Vector2((float)x1, (float)y1));
+    }
 }
