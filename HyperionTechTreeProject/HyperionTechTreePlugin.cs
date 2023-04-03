@@ -42,12 +42,13 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
     private static Dictionary<string, bool> _techsObtained = new();
     private static List<TechTreeNode> _techTreeNodes = new();
+    private static int _techPointBalance = 500;
 
     private static TechTreeNode _focusedNode = null;
 
     private static List<AssemblyPartsButton> _assemblyPartsButtons = new();
 
-    // Whenever typing a file path, use {_s} instead of / or \ or \\
+    // Whenever typing a file path, use {_s} instead of / or \ or \\ unless the function specifically needs /
     // (because of course the difference between / and \ becomes relevant in this code)
     private static readonly char _s = Path.DirectorySeparatorChar;
     private string DefaultTechTreeFilePath => $"{PluginFolderPath}{_s}Tech Tree{_s}TechTree.json";
@@ -248,9 +249,19 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                         }
                     }
                 }
-                if (!skipButtonFlag) if (GUILayout.Button($"Unlock Tech (Costs {_focusedNode.Cost} Tech Points)"))
+                if (!skipButtonFlag)
                 {
-                    _techsObtained[_focusedNode.NodeID] = true;
+                    defaultColor = GUI.backgroundColor;
+                    GUI.backgroundColor = _focusedNode.Cost > _techPointBalance ? Color.red : Color.blue;
+                    if (GUILayout.Button(_focusedNode.Cost > _techPointBalance ? $"Tech Is Too Expensive! Costs {_focusedNode.Cost} Tech Points (You Have {_techPointBalance})" : $"Unlock Tech. Costs {_focusedNode.Cost} Tech Points (You Have {_techPointBalance})"))
+                    {
+                        if (_focusedNode.Cost <= _techPointBalance)
+                        {
+                            _techsObtained[_focusedNode.NodeID] = true;
+                            _techPointBalance -= _focusedNode.Cost;
+                        }
+                    }
+                    GUI.backgroundColor = defaultColor;
                 }
             }
             
