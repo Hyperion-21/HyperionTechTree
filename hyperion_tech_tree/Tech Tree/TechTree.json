@@ -1,0 +1,74 @@
+{
+    "modVersion": "0.0.1",
+    "nodes": [
+        {
+            "nodeID": "Start",
+            "dependencies": [],
+            "requiresAll": true,
+            "posx": 10,
+            "posy": 390,
+            "parts": [ "fin_0v_procedural", "pod_1v_conical_crew", "booster_1v_solid_flea", "parachute_0v" ],
+            "cost": 0,
+            "unlockedInitially": true
+        },
+        {
+            "nodeID": "Basic Rocketry",
+            "dependencies": [ "Start" ],
+            "requiresAll": true,
+            "posx": 70,
+            "posy": 345,
+            "parts": [ "engine_1v_methalox_swivel", "booster_1v_solid_hammer", "fueltank_1v_inline_methalox_1x1" ],
+            "cost": 5,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Engineering 101",
+            "dependencies": [ "Start" ],
+            "requiresAll": true,
+            "posx": 70,
+            "posy": 435,
+            "parts": [ "decoupler_1v_inline", "antenna_0v_16", "antenna_0v_16s" ],
+            "cost": 5,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "General Rocketry",
+            "dependencies": [ "Basic Rocketry" ],
+            "requiresAll": true,
+            "posx": 130,
+            "posy": 210,
+            "parts": [ "engine_1v_methalox_reliant", "booster_1v_solid_thumper", "fueltank_1v_inline_methalox_1x2" ],
+            "cost": 20,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Stability",
+            "dependencies": [ "Basic Rocketry", "Engineering 101" ],
+            "requiresAll": false,
+            "posx": 130,
+            "posy": 390,
+            "parts": [ "nosecone_1v_hemisphere", "stabilizer_1v_procedural_light", "decoupler_1v_radial" ],
+            "cost": 18,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Survivability",
+            "dependencies": [ "Engineering 101" ],
+            "requiresAll": true,
+            "posx": 130,
+            "posy": 570,
+            "parts": [ "heatshield_0v", "heatshield_1v", "landingleg_0v" ],
+            "cost": 15,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Aviation",
+            "dependencies": [ "Stability" ],
+            "requiresAll": true,
+            "posx": 190,
+            "posy": 390,
+            "parts": [],
+            "unlockedInitially": false
+        }
+    ]
+}

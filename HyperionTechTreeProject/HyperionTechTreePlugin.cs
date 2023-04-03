@@ -47,7 +47,10 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
     private static List<AssemblyPartsButton> _assemblyPartsButtons = new();
 
-    private string DefaultTechTreeFilePath => $"{PluginFolderPath}/Tech Tree/TechTree.json";
+    // Whenever typing a file path, use {_s} instead of / or \ or \\
+    // (because of course the difference between / and \ becomes relevant in this code)
+    private static readonly char _s = Path.DirectorySeparatorChar;
+    private string DefaultTechTreeFilePath => $"{PluginFolderPath}{_s}Tech Tree{_s}TechTree.json";
     private static string _path;
     private static string _swPath;
 
@@ -66,6 +69,9 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         _logger = Logger;
         _path = PluginFolderPath;
         _swPath = SpaceWarpMetadata.ModID;
+        _logger.LogInfo(_s);
+        _logger.LogInfo($"{PluginFolderPath}{_s}swinfo.json");
+        _logger.LogInfo(File.Exists($"{PluginFolderPath}{_s}swinfo.json").ToString());
 
         Instance = this;
 
@@ -96,10 +102,10 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         // Register all Harmony patches in the project
         Harmony.CreateAndPatchAll(typeof(HyperionTechTreePlugin).Assembly);
 
-        // Change this later to support multiple files
-        _logger.LogInfo($"Creating json reader from {DefaultTechTreeFilePath}");
-        if (File.Exists(DefaultTechTreeFilePath)) CreateJsonReader(DefaultTechTreeFilePath);
-        else _logger.LogInfo($"Could not find file at {DefaultTechTreeFilePath}!");
+        //// Change this later to support multiple files
+        //_logger.LogInfo($"Creating json reader from {DefaultTechTreeFilePath}");
+        //if (File.Exists(DefaultTechTreeFilePath)) CreateJsonReader(DefaultTechTreeFilePath);
+        //else _logger.LogInfo($"Could not find file at {DefaultTechTreeFilePath}!");
 
         GenerateTechs();
     }
@@ -173,7 +179,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             if (_focusedNode != null) if (_focusedNode.NodeID == node.NodeID) GUI.backgroundColor = Color.white;
 
             Texture2D texture;
-            if (File.Exists($"{_path}/assets/images/{node.NodeID}.png")) texture = AssetManager.GetAsset<Texture2D>($"{_swPath}/images/{node.NodeID}.png");
+            if (File.Exists($"{_path}{_s}assets{_s}images{_s}{node.NodeID}.png")) texture = AssetManager.GetAsset<Texture2D>($"{_swPath}/images/{node.NodeID}.png");
             else
             {
                 //_logger.LogWarning($"Could not find button texture for node {node.NodeID}!");
@@ -273,30 +279,30 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     /// </summary>
     private void GenerateTechs()
     {
-        foreach (string file in Directory.GetFiles($"{PluginFolderPath}/Tech Tree"))
+        if (File.Exists(DefaultTechTreeFilePath)) GenerateNode(DefaultTechTreeFilePath);
+        foreach (string file in Directory.GetFiles($"{PluginFolderPath}{_s}Tech Tree"))
+        {
+            if (file != DefaultTechTreeFilePath) GenerateNode(file);
+        }
+
+        void GenerateNode(string file)
         {
             _logger.LogInfo($"Found tech tree! {file}");
             CreateJsonReader(file);
             foreach (var node in _jsonObject.Nodes)
             {
-                if (_techTreeNodes.Exists(item => item.NodeID == node.NodeID))
+                
+                if (_techTreeNodes.Exists(x => x.NodeID == node.NodeID))
                 {
-                    _logger.LogWarning($"Found multiple nodes with ID {(string)node.NodeID}! Ignoring the one defined in {file}");
+                    _logger.LogInfo($"Found multiple nodes with ID {node.NodeID}! Attempting merge.");
+                    var originalNode = _techTreeNodes.Find(x => x.NodeID == node.NodeID);
+                    foreach (string part in node.Parts) if (!originalNode.Parts.Contains(part)) originalNode.Parts.Add(part);
                     continue;
                 }
                 _techTreeNodes.Add(node);
                 _techsObtained.Add(node.NodeID, node.UnlockedInitially);
 
-                //Dictionary<string, object> nodeData = new()
-                //{
-                //    { "dependencies", node.dependencies },
-                //    { "requiresAll", node.requiresAll },
-                //    { "posx", node.posx },
-                //    { "posy", node.posy },
-                //    { "parts", node.parts },
-                //    { "obtained", false }
-                //};
-                //_techTreeNodes.Add((string)node.nodeID, nodeData);
+
             }
         }
     }
