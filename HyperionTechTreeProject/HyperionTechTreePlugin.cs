@@ -4,16 +4,11 @@ using KSP.UI.Binding;
 using SpaceWarp;
 using SpaceWarp.API.Assets;
 using SpaceWarp.API.Mods;
-using SpaceWarp.API.Game;
-using SpaceWarp.API.Game.Extensions;
 using SpaceWarp.API.UI;
 using SpaceWarp.API.UI.Appbar;
 using UnityEngine;
 using BepInEx.Logging;
-using System.Runtime.InteropServices.ComTypes;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using static GUIUtil;
 using KSP.OAB;
 using I2.Loc;
 
@@ -152,10 +147,11 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         foreach (var node in _techTreeNodes)
         {
+
             if (_techsObtained[node.NodeID]) GUI.backgroundColor = Color.green;
             else
             {
-                GUI.backgroundColor = Color.red;
+                GUI.backgroundColor = Color.blue;
                 int i = node.Dependencies.Count;
                 foreach (var dependency in node.Dependencies)
                 {
@@ -164,16 +160,17 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                         i--;
                         if (node.RequiresAll)
                         {
-                            GUI.backgroundColor = Color.gray;
+                            GUI.backgroundColor = Color.red;
                         }
                         if (!node.RequiresAll && i == 0)
                         {
-                            GUI.backgroundColor = Color.gray;
+                            GUI.backgroundColor = Color.red;
                         }
                     }
-                    
+
                 }
             }
+            if (_focusedNode != null) if (_focusedNode.NodeID == node.NodeID) GUI.backgroundColor = Color.white;
 
             Texture2D texture;
             if (File.Exists($"{_path}/assets/images/{node.NodeID}.png")) texture = AssetManager.GetAsset<Texture2D>($"{_swPath}/images/{node.NodeID}.png");
