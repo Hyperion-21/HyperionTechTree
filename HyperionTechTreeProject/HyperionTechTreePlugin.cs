@@ -33,6 +33,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static float _windowHeight = 1;
     private static float _windowWidth = 1;
     private const float ButtonSize = 36;
+    private const float LineWidth = 2;
     private static float _techTreex1 = 10000;
     private static float _techTreex2 = -10000;
     private static float _techTreey1 = 10000;
@@ -142,7 +143,12 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         {
             foreach (var dependency in node.Dependencies)
             {
-                DrawLine(node.PosX + (ButtonSize / 2), node.PosY + (ButtonSize / 2), _techTreeNodes.Find(x => x.NodeID == dependency).PosX + (ButtonSize / 2), _techTreeNodes.Find(x => x.NodeID == dependency).PosY + (ButtonSize / 2));
+                DrawLine(
+                    node.PosX + (ButtonSize / 2) + (0.5 * LineWidth), 
+                    node.PosY + (ButtonSize / 2) + (0.5 * LineWidth), 
+                    _techTreeNodes.Find(x => x.NodeID == dependency).PosX + (ButtonSize / 2) + (0.5 * LineWidth), 
+                    _techTreeNodes.Find(x => x.NodeID == dependency).PosY + (ButtonSize / 2) + (0.5 * LineWidth)
+                );
             }
         }
 
@@ -181,7 +187,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 texture = Texture2D.blackTexture;
             }
 
-            
+
 
             if (GUI.Button(new Rect(node.PosX, node.PosY, ButtonSize, ButtonSize), texture))
             {
@@ -391,7 +397,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         double length = Math.Sqrt(Math.Pow(adjacent, 2) + Math.Pow(opposite, 2));
         GUI.backgroundColor = Color.white;
         GUIUtility.RotateAroundPivot((float)((Math.Atan(opposite / adjacent) * (180 / Math.PI)) + 180), new Vector2((float)x1, (float)y1));
-        GUI.DrawTexture(new Rect((float)x1, (float)y1, (float)length, 2), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect((float)x1, (float)y1, (float)length, LineWidth), Texture2D.whiteTexture);
         GUIUtility.RotateAroundPivot((float)-((Math.Atan(opposite / adjacent) * (180 / Math.PI)) + 180), new Vector2((float)x1, (float)y1));
     }
 }
