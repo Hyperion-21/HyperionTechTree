@@ -345,7 +345,11 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 if (node.PosY < _techTreey1) _techTreey1 = node.PosY;
                 if (node.PosY > _techTreex2) _techTreey2 = node.PosY;
             }
-            _logger.LogInfo($"Tree Dimensions: ({_techTreex1}, {_techTreey1}), ({_techTreex2}, {_techTreey2})");
+            if (_jsonObject.ModVersion != MyPluginInfo.PLUGIN_VERSION)
+            {
+                _logger.LogWarning($"Version mismatch between mod version and the version of {file}!");
+                _logger.LogWarning($"Mod Version: {_jsonObject.ModVersion} | Tech Tree Version: {MyPluginInfo.PLUGIN_VERSION}");
+            }
         }
     }
 
