@@ -119,7 +119,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         if (_isWindowOpen)
         {
-            _windowWidth = _techTreex2 + 100;
+            _windowWidth = _techTreex2 + 150; // For some reason, making the horizontal margin smaller messes with line rendering
             _windowHeight = _techTreey2 + 100;
             _windowRect = GUILayout.Window(
                 GUIUtility.GetControlID(FocusType.Passive),
