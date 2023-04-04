@@ -54,9 +54,13 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static List<AssemblyPartsButton> _assemblyPartsButtons = new();
 
     // Whenever typing a file path, use {_s} instead of / or \ or \\ unless the function specifically needs /
+    // If in doubt, use {_s}, and if it causes a crash replace with / (NOT \ OR \\)
+    // {_s} looks better when printed to log, "abc/def\ghi" vs "abc\def\ghi"
+    // Some things that look like filepaths actually aren't (i.e. AssetManager.GetAsset calls),
+    // and using \, \\, or {_s} there can cause crashes!
     // (because of course the difference between / and \ becomes relevant in this code)
     private static readonly char _s = Path.DirectorySeparatorChar;
-    private string DefaultTechTreeFilePath => $"{PluginFolderPath}{_s}Tech Tree{_s}TechTree.json";
+    private string DefaultTechTreeFilePath => $"{PluginFolderPath}{_s}Tech Tree{_s}DefaultTechTree.json";
     private static string _path;
     private static string _swPath;
 
