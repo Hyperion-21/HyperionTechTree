@@ -295,12 +295,17 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     /// </summary>
     private void GenerateTechs()
     {
+        // Loads DefaultTechTreeFilePath before any other json is loaded.
+        // The current system for having duplicate nodes ignores everything except the parts list
+        // of the dupe node, which is an issue if the node that declares all of the non-part data
+        // is loaded as a duplicate node. Loading it in first fixes this issue.
         if (File.Exists(DefaultTechTreeFilePath)) GenerateNode(DefaultTechTreeFilePath);
         foreach (string file in Directory.GetFiles($"{PluginFolderPath}{_s}Tech Tree"))
         {
             if (file != DefaultTechTreeFilePath) GenerateNode(file);
         }
 
+        // I've never used a local method before
         void GenerateNode(string file)
         {
             _logger.LogInfo($"Found tech tree! {file}");
