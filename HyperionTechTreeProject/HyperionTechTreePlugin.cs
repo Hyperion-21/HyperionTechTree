@@ -11,6 +11,7 @@ using BepInEx.Logging;
 using Newtonsoft.Json;
 using KSP.OAB;
 using I2.Loc;
+using UnityEngine.UIElements;
 
 namespace HyperionTechTree;
 
@@ -65,6 +66,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static string _swPath;
 
     private static ManualLogSource _logger;
+    private static bool _disableMod = false;
 
     public static HyperionTechTreePlugin Instance { get; set; }
 
@@ -75,6 +77,21 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     {
         base.OnInitialized();
         _logger = Logger;
+
+        // Completely disables the mod if Q and P are held down during startup
+        if (Input.GetKey(KeyCode.Q) && Input.GetKey(KeyCode.P))
+        {
+            _disableMod = true;
+            _logger.LogWarning("\n\n" +
+                "/////////////////////////////////////////////////////////////////////////\n" +
+                "Hyperion Tech Tree has been disabled!\n" +
+                "This should have been achieved by holding down Q and P during startup!\n" +
+                "If you didn't do this, something went very wrong! Send a bug report!\n" +
+                "HTT will be disabled for this game session! Restart the game to reenable!\n" +
+                "/////////////////////////////////////////////////////////////////////////\n");
+            return;
+        }
+
         _path = PluginFolderPath;
         _swPath = SpaceWarpMetadata.ModID;
         _logger.LogInfo(_s);
@@ -118,6 +135,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     /// </summary>
     private void OnGUI()
     {
+        if (_disableMod) return;
         // Set the UI
         GUI.skin = Skins.ConsoleSkin;
 

@@ -1,0 +1,31 @@
+{
+    "modVersion": "0.0.1",
+    "bodies": [
+        {
+            "bodyName": "Kerbol",
+            "spaceThreshold": 1000000000,
+            "atmosphereThreshold": 600000,
+            "hasAtmosphere": true,
+            "hasSurface": false,
+            "highSpaceAward": 80,
+            "lowSpaceAward:": 440,
+            "highAtmosphereAward": 520,
+            "lowAtmosphereAward": 600,
+            "landedAward": 0
+        },
+        {
+            "bodyName": "Kerbin",
+            "referenceBody": "Kerbol",
+            "spaceThreshold": 250000,
+            "atmosphereThreshold": 70000,
+            "hasAtmosphere": true,
+            "hasSurface": true,
+            "highSpaceAward": 60,
+            "lowSpaceAward:": 40,
+            "highAtmosphereAward": 36,
+            "lowAtmosphereAward": 28,
+            "landedAward": 0
+        }
+
+    ]
+}
