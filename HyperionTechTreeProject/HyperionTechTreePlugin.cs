@@ -29,10 +29,14 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     public const string ModVer = MyPluginInfo.PLUGIN_VERSION;
     
     private bool _isWindowOpen;
-    private Rect _windowRect = new(0, 0, WindowWidth, WindowHeight);
-    private const float WindowHeight = 400;
-    private const float WindowWidth = 1000;
+    private Rect _windowRect = new(0, 0, _windowWidth, _windowHeight);
+    private static float _windowHeight = 1;
+    private static float _windowWidth = 1;
     private const float ButtonSize = 36;
+    private static float _techTreex1 = 10000;
+    private static float _techTreex2 = -10000;
+    private static float _techTreey1 = 10000;
+    private static float _techTreey2 = -10000;
 
     private const string ToolbarFlightButtonID = "BTN-HyperionTechTreeFlight";
     private const string ToolbarOABButtonID = "BTN-HyperionTechTreeOAB";
@@ -56,8 +60,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static string _swPath;
 
     private static ManualLogSource _logger;
-
-    // private static JsonTextReader _testreader;
 
     public static HyperionTechTreePlugin Instance { get; set; }
 
@@ -103,18 +105,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         // Register all Harmony patches in the project
         Harmony.CreateAndPatchAll(typeof(HyperionTechTreePlugin).Assembly);
 
-        //// Change this later to support multiple files
-        //_logger.LogInfo($"Creating json reader from {DefaultTechTreeFilePath}");
-        //if (File.Exists(DefaultTechTreeFilePath)) CreateJsonReader(DefaultTechTreeFilePath);
-        //else _logger.LogInfo($"Could not find file at {DefaultTechTreeFilePath}!");
-
         GenerateTechs();
     }
-
-    //void Update()
-    //{
-    //    foreach (AssemblyPartsButton assemblyPartsButton in _assemblyPartsButtons) PartHider(assemblyPartsButton);
-    //}
 
     /// <summary>
     /// Draws a simple UI window when <code>this._isWindowOpen</code> is set to <code>true</code>.
@@ -126,13 +118,15 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         if (_isWindowOpen)
         {
+            _windowWidth = _techTreex2 + 100;
+            _windowHeight = _techTreey2 + 100;
             _windowRect = GUILayout.Window(
                 GUIUtility.GetControlID(FocusType.Passive),
                 _windowRect,
                 FillWindow,
                 "Hyperion Tech Tree",
-                GUILayout.Height(WindowHeight),
-                GUILayout.Width(WindowWidth)
+                GUILayout.Height(_windowHeight),
+                GUILayout.Width(_windowWidth)
             );
         }
     }
@@ -187,13 +181,15 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 texture = Texture2D.blackTexture;
             }
 
+            
+
             if (GUI.Button(new Rect(node.PosX, node.PosY, ButtonSize, ButtonSize), texture))
             {
                 _focusedNode = node;
             }
         }
         GUI.backgroundColor = defaultColor;
-        GUILayout.Space(900);
+        GUILayout.Space(_techTreey2 + 50);
         if (_focusedNode != null) 
         {
             GUILayout.Label($"Selected Node: {_focusedNode.NodeID}");
@@ -223,7 +219,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             }
             GUILayout.Label("Unlocks Parts: " + partList);
 
-            //if (GUILayout.Button(new Rect(10, 0, WindowWidth - 20, 50), $"Unlock Tech (Costs ${_focusedNode.Cost} Tech Points"))
             if (_techsObtained[_focusedNode.NodeID])
             {
                 GUILayout.Label("You already own this tech!");
@@ -312,9 +307,12 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 }
                 _techTreeNodes.Add(node);
                 _techsObtained.Add(node.NodeID, node.UnlockedInitially);
-
-
+                if (node.PosX < _techTreex1) _techTreex1 = node.PosX;
+                if (node.PosX > _techTreex2) _techTreex2 = node.PosX;
+                if (node.PosY < _techTreey1) _techTreey1 = node.PosY;
+                if (node.PosY > _techTreex2) _techTreey2 = node.PosY;
             }
+            _logger.LogInfo($"Tree Dimensions: ({_techTreex1}, {_techTreey1}), ({_techTreex2}, {_techTreey2})");
         }
     }
 
