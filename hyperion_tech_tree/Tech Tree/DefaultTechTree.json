@@ -330,6 +330,266 @@
             "parts": [],
             "cost": 160,
             "unlockedInitially": false
+        },
+        {
+            "nodeID": "Nuclear Propulsion",
+            "dependencies": [ "Heavier Rocketry", "Advanced Fuel Systems" ],
+            "requiresAll": true,
+            "posx": 550,
+            "posy": 75,
+            "parts": [],
+            "cost": 300,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Large Volume Containment",
+            "dependencies": [ "Advanced Fuel Systems", "Specialized Construction" ],
+            "requiresAll": false,
+            "posx": 550,
+            "posy": 120,
+            "parts": [],
+            "cost": 300,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Advanced MetalWorks",
+            "dependencies": [ "Specialized Construction" ],
+            "requiresAll": true,
+            "posx": 550,
+            "posy": 165,
+            "parts": [],
+            "cost": 300,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Composites",
+            "dependencies": [ "Specialized Construction" ],
+            "requiresAll": true,
+            "posx": 550,
+            "posy": 210,
+            "parts": [],
+            "cost": 300,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "High Altitude Flight",
+            "dependencies": [ "Supersonic Flight" ],
+            "requiresAll": true,
+            "posx": 550,
+            "posy": 255,
+            "parts": [],
+            "cost": 300,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Heavy Aerodynamics",
+            "dependencies": [ "Advanced Aerodynamics" ],
+            "requiresAll": true,
+            "posx": 550,
+            "posy": 300,
+            "parts": [],
+            "cost": 300,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Heavy Landing",
+            "dependencies": [ "Advanced Landing" ],
+            "requiresAll": true,
+            "posx": 550,
+            "posy": 345,
+            "parts": [],
+            "cost": 300,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Field Science",
+            "dependencies": [ "Advanced Landing", "Advanced Exploration" ],
+            "requiresAll": false,
+            "posx": 550,
+            "posy": 390,
+            "parts": [],
+            "cost": 300,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Advanced Command Modules",
+            "dependencies": [ "Command Modules" ],
+            "requiresAll": true,
+            "posx": 550,
+            "posy": 435,
+            "parts": [],
+            "cost": 300,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Unmanned Tech",
+            "dependencies": [ "Precision Engineering" ],
+            "requiresAll": true,
+            "posx": 550,
+            "posy": 570,
+            "parts": [],
+            "cost": 300,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Electronics",
+            "dependencies": [ "Precision Engineering", "Advanced Electrics" ],
+            "requiresAll": false,
+            "posx": 550,
+            "posy": 615,
+            "parts": [],
+            "cost": 300,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "High-Power Electrics",
+            "dependencies": [ "Advanced Electrics" ],
+            "requiresAll": true,
+            "posx": 550,
+            "posy": 660,
+            "parts": [],
+            "cost": 300,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Very Heavy Rocketry",
+            "dependencies": [ "Heavier Rocketry", "Large Volume Containment" ],
+            "requiresAll": false,
+            "posx": 640,
+            "posy": 30,
+            "parts": [],
+            "cost": 550,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Nuclear Physics",
+            "dependencies": [ "Nuclear Propulsion", "Large Volume Containment" ],
+            "requiresAll": true,
+            "posx": 640,
+            "posy": 75,
+            "parts": [],
+            "cost": 550,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "High-Performance Fuel Systems",
+            "dependencies": [ "Large Volume Containment" ],
+            "requiresAll": true,
+            "posx": 640,
+            "posy": 120,
+            "parts": [],
+            "cost": 550,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Meta-Materials",
+            "dependencies": [ "Composites" ],
+            "requiresAll": true,
+            "posx": 640,
+            "posy": 210,
+            "parts": [],
+            "cost": 550,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Hypersonic Flight",
+            "dependencies": [ "High Altitude Flight" ],
+            "requiresAll": true,
+            "posx": 640,
+            "posy": 255,
+            "parts": [],
+            "cost": 550,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Experimental Aerodynamics",
+            "dependencies": [ "Heavy Aerodynamics" ],
+            "requiresAll": true,
+            "posx": 640,
+            "posy": 300,
+            "parts": [],
+            "cost": 550,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Advanced Motors",
+            "dependencies": [ "Field Science" ],
+            "requiresAll": true,
+            "posx": 640,
+            "posy": 390,
+            "parts": [],
+            "cost": 550,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Ion Propulsion",
+            "dependencies": [ "Unmanned Tech" ],
+            "requiresAll": true,
+            "posx": 640,
+            "posy": 525,
+            "parts": [],
+            "cost": 550,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Advanced Unmanned Tech",
+            "dependencies": [ "Unmanned Tech" ],
+            "requiresAll": true,
+            "posx": 640,
+            "posy": 570,
+            "parts": [],
+            "cost": 550,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Automation",
+            "dependencies": [ "Unmanned Tech", "Electronics" ],
+            "requiresAll": false,
+            "posx": 640,
+            "posy": 615,
+            "parts": [],
+            "cost": 550,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Specialized Electrics",
+            "dependencies": [ "High-Power Electrics" ],
+            "requiresAll": true,
+            "posx": 640,
+            "posy": 660,
+            "parts": [],
+            "cost": 550,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Aerospace Tech",
+            "dependencies": [ "Hypersonic Flight" ],
+            "requiresAll": true,
+            "posx": 730,
+            "posy": 255,
+            "parts": [],
+            "cost": 1000,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Large Probes",
+            "dependencies": [ "Advanced Unmanned Tech", "Automation" ],
+            "requiresAll": false,
+            "posx": 730,
+            "posy": 570,
+            "parts": [],
+            "cost": 1000,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Experimental Electrics",
+            "dependencies": [ "Specialized Electrics" ],
+            "requiresAll": true,
+            "posx": 730,
+            "posy": 660,
+            "parts": [],
+            "cost": 1000,
+            "unlockedInitially": false
         }
     ]
 }

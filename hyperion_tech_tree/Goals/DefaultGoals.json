@@ -9,6 +9,7 @@
             "hasSurface": false,
             "highSpaceAward": 80,
             "lowSpaceAward:": 440,
+            "orbitAward": 0,
             "highAtmosphereAward": 520,
             "lowAtmosphereAward": 600,
             "landedAward": 0
@@ -22,6 +23,7 @@
             "hasSurface": true,
             "highSpaceAward": 60,
             "lowSpaceAward:": 40,
+            "orbitAward": 0,
             "highAtmosphereAward": 36,
             "lowAtmosphereAward": 28,
             "landedAward": 0
