@@ -217,7 +217,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             }
         }
         GUI.backgroundColor = defaultColor;
-        GUILayout.Space(_techTreey2 + 50);
+        GUILayout.Space(_techTreey2 + 10);
         if (_focusedNode != null) 
         {
             GUILayout.Label($"Selected Node: {_focusedNode.NodeID}");

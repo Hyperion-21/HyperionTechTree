@@ -6,7 +6,7 @@
             "dependencies": [],
             "requiresAll": true,
             "posx": 10,
-            "posy": 390,
+            "posy": 300,
             "parts": [ "fin_0v_procedural", "pod_1v_conical_crew", "booster_1v_solid_flea", "parachute_0v" ],
             "cost": 0,
             "unlockedInitially": true
@@ -16,7 +16,7 @@
             "dependencies": [ "Start" ],
             "requiresAll": true,
             "posx": 100,
-            "posy": 345,
+            "posy": 255,
             "parts": [ "engine_1v_methalox_swivel", "booster_1v_solid_hammer", "fueltank_1v_inline_methalox_1x1" ],
             "cost": 5,
             "unlockedInitially": false
@@ -26,7 +26,7 @@
             "dependencies": [ "Start" ],
             "requiresAll": true,
             "posx": 100,
-            "posy": 435,
+            "posy": 345,
             "parts": [ "decoupler_1v_inline", "antenna_0v_16", "antenna_0v_16s" ],
             "cost": 5,
             "unlockedInitially": false
@@ -36,7 +36,7 @@
             "dependencies": [ "Basic Rocketry" ],
             "requiresAll": true,
             "posx": 190,
-            "posy": 210,
+            "posy": 120,
             "parts": [ "engine_1v_methalox_reliant", "booster_1v_solid_thumper", "fueltank_1v_inline_methalox_1x2" ],
             "cost": 20,
             "unlockedInitially": false
@@ -46,7 +46,7 @@
             "dependencies": [ "Basic Rocketry", "Engineering 101" ],
             "requiresAll": false,
             "posx": 190,
-            "posy": 390,
+            "posy": 300,
             "parts": [ "nosecone_1v_hemisphere", "stabilizer_1v_procedural_light", "decoupler_1v_radial" ],
             "cost": 18,
             "unlockedInitially": false
@@ -56,7 +56,7 @@
             "dependencies": [ "Engineering 101" ],
             "requiresAll": true,
             "posx": 190,
-            "posy": 570,
+            "posy": 480,
             "parts": [ "heatshield_0v", "heatshield_1v", "landingleg_0v" ],
             "cost": 15,
             "unlockedInitially": false
@@ -66,7 +66,7 @@
             "dependencies": [ "General Rocketry" ],
             "requiresAll": true,
             "posx": 280,
-            "posy": 165,
+            "posy": 75,
             "parts": [ "engine_1v_methalox_terrier", "engine_1v_methalox_thud", "fueltank_1v_inline_methalox_1x4" ],
             "cost": 45,
             "unlockedInitially": false
@@ -76,7 +76,7 @@
             "dependencies": [ "General Rocketry", "Stability" ],
             "requiresAll": false,
             "posx": 280,
-            "posy": 300,
+            "posy": 210,
             "parts": [ "cabin_1v_m1_crew", "strut_1v_extensible", "decoupler_2v_inline", "fuselage_1v_m1_structural", "launchclamp_3v_ground", "adapter_2v_conical_1v-2v" ],
             "cost": 45,
             "unlockedInitially": false
@@ -86,7 +86,7 @@
             "dependencies": [ "Stability" ],
             "requiresAll": true,
             "posx": 280,
-            "posy": 390,
+            "posy": 300,
             "parts": [ "wing_1v_procedural_light", "tailsection_1v_tapered_conical", "intake_0v_circular", "cockpit_1v_m1_crew", "engine_0v_methane_whittle", "fueltank_0v_m0_inline_methane", "fueltank_1v_m1_inline_methane", "light_0v_navigation", "landinggear_0v_steerable", "landinggear_1v_fixed" ],
             "cost": 45,
             "unlockedInitially": false
@@ -96,7 +96,7 @@
             "dependencies": [ "Stability", "Survivability" ],
             "requiresAll": false,
             "posx": 280,
-            "posy": 480,
+            "posy": 390,
             "parts": [ "stabilizer_2v_procedural_heavy", "stabilizer_0v_reactionwheel" ],
             "cost": 45,
             "unlockedInitially": false
@@ -106,7 +106,7 @@
             "dependencies": [ "Survivability" ],
             "requiresAll": true,
             "posx": 280,
-            "posy": 660,
+            "posy": 570,
             "parts": [ "storage_0v_battery_electricity_radial", "antenna_1v_dish_hg5" ],
             "cost": 45,
             "unlockedInitially": false
@@ -116,7 +116,7 @@
             "dependencies": [ "Advanced Rocketry" ],
             "requiresAll": true,
             "posx": 370,
-            "posy": 120,
+            "posy": 30,
             "parts": [ "engine_2v_methalox_poodle", "engine_2v_methalox_skipper", "booster_1v_solid_kickback" ],
             "cost": 90,
             "unlockedInitially": false
@@ -126,7 +126,7 @@
             "dependencies": [ "Advanced Rocketry" ],
             "requiresAll": true,
             "posx": 370,
-            "posy": 165,
+            "posy": 75,
             "parts": [ "engine_0v_methalox_spark", "engine_0v_methalox_ant", "fueltank_0v_inline_methalox" ],
             "cost": 90,
             "unlockedInitially": false
@@ -136,7 +136,7 @@
             "dependencies": [ "Advanced Rocketry", "General Construction" ],
             "requiresAll": false,
             "posx": 370,
-            "posy": 210,
+            "posy": 120,
             "parts": [ "fuelline_0v_external", "fueltank_2v_inline_methalox_1x1", "fueltank_2v_inline_methalox_1x2", "fueltank_2v_inline_methalox_1x4", "fueltank_1v_inline_methalox_1x8" ],
             "cost": 90,
             "unlockedInitially": false
@@ -146,7 +146,7 @@
             "dependencies": [ "General Construction" ],
             "requiresAll": true,
             "posx": 370,
-            "posy": 300,
+            "posy": 210,
             "parts": [ "nosecone_1v_advanced_conical", "nosecone_2v_protective", "fairing_1v_procedural", "separator_1v_inline", "decoupler_3v_radial", "decoupler_2v_radial", "adapter_2v_flat_1v-2v", "coupler_1v_inline_3point" ],
             "cost": 90,
             "unlockedInitially": false
@@ -156,7 +156,7 @@
             "dependencies": [ "General Construction", "Aviation" ],
             "requiresAll": false,
             "posx": 370,
-            "posy": 345,
+            "posy": 255,
             "parts": [ "intake_1v_radial", "intake_1v_circular", "fairing_1v_procedural", "adapter_1v_bullet_methalox_0v-1v", "nosecone_0v", "tailsection_1v_tapered_rightcone", "cockpit_1v_m1_inline_crew", "engine_1v_turbofan_methane_wheesley", "intake_1v_m1_nacelle_methane" ],
             "cost": 90,
             "unlockedInitially": false
@@ -166,7 +166,7 @@
             "dependencies": [ "Aviation", "Flight Control" ],
             "requiresAll": false,
             "posx": 370,
-            "posy": 435,
+            "posy": 345,
             "parts": [ "heatshield_2v", "landingleg_1v", "escapesystem_1v_launch", "parachute_1v", "landinggear_1v" ],
             "cost": 90,
             "unlockedInitially": false
@@ -176,7 +176,7 @@
             "dependencies": [ "Flight Control" ],
             "requiresAll": true,
             "posx": 370,
-            "posy": 480,
+            "posy": 390,
             "parts": [ "stabilizer_1v_reactionwheel", "pod_1v_lander_crew", "fueltank_0v_radial_monoprop_1x1", "rcs_0v_linear_monoprop", "rcs_0v_block_monoprop" ],
             "cost": 90,
             "unlockedInitially": false
@@ -186,7 +186,7 @@
             "dependencies": [ "Basic Science" ],
             "requiresAll": true,
             "posx": 370,
-            "posy": 570,
+            "posy": 480,
             "parts": [ "cabin_2v_crew_hitchhiker", "ladder_0v_fixed_pegasus", "wheel_0v_rover" ],
             "cost": 90,
             "unlockedInitially": false
@@ -196,7 +196,7 @@
             "dependencies": [ "Basic Science" ],
             "requiresAll": true,
             "posx": 370,
-            "posy": 660,
+            "posy": 570,
             "parts": [ "separator_0v_inline", "adapter_1v_flat_0v-1v", "adapter_1v_conical_0v-1v", "dockingport_0v_inline" ],
             "cost": 90,
             "unlockedInitially": false
@@ -206,9 +206,129 @@
             "dependencies": [ "Basic Science" ],
             "requiresAll": true,
             "posx": 370,
-            "posy": 750,
+            "posy": 660,
             "parts": [ "probe_0v_octagonal_electricity_1x3", "solararray_0v_flat", "storage_0v_battery_electricity", "light_0v_broad", "light_0v_bulb", "light_0v_dome", "light_0v_spot", "light_0v_spot_narrow" ],
             "cost": 90,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Heavier Rocketry",
+            "dependencies": [ "Heavy Rocketry" ],
+            "requiresAll": true,
+            "posx": 460,
+            "posy": 30,
+            "parts": [],
+            "cost": 160,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Precision Propulsion",
+            "dependencies": [ "Propulsion Systems" ],
+            "requiresAll": true,
+            "posx": 460,
+            "posy": 75,
+            "parts": [],
+            "cost": 160,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Advanced Fuel Systems",
+            "dependencies": [ "Propulsion Systems", "Fuel Systems" ],
+            "requiresAll": false,
+            "posx": 460,
+            "posy": 120,
+            "parts": [],
+            "cost": 160,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Specialized Construction",
+            "dependencies": [ "Advanced Construction" ],
+            "requiresAll": true,
+            "posx": 460,
+            "posy": 165,
+            "parts": [],
+            "cost": 160,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Supersonic Flight",
+            "dependencies": [ "Aerodynamics" ],
+            "requiresAll": true,
+            "posx": 460,
+            "posy": 255,
+            "parts": [],
+            "cost": 160,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Advanced Aerodynamics",
+            "dependencies": [ "Aerodynamics" ],
+            "requiresAll": true,
+            "posx": 460,
+            "posy": 300,
+            "parts": [],
+            "cost": 160,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Advanced Landing",
+            "dependencies": [ "Landing" ],
+            "requiresAll": true,
+            "posx": 460,
+            "posy": 345,
+            "parts": [],
+            "cost": 160,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Specialized Control",
+            "dependencies": [ "Advanced Flight Control" ],
+            "requiresAll": true,
+            "posx": 460,
+            "posy": 390,
+            "parts": [],
+            "cost": 160,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Command Modules",
+            "dependencies": [ "Advanced Flight Control", "Space Exploration" ],
+            "requiresAll": false,
+            "posx": 460,
+            "posy": 435,
+            "parts": [],
+            "cost": 160,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Advanced Exploration",
+            "dependencies": [ "Space Exploration" ],
+            "requiresAll": true,
+            "posx": 460,
+            "posy": 480,
+            "parts": [],
+            "cost": 160,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Precision Engineering",
+            "dependencies": [ "Miniaturization", "Electrics" ],
+            "requiresAll": false,
+            "posx": 460,
+            "posy": 570,
+            "parts": [],
+            "cost": 160,
+            "unlockedInitially": false
+        },
+        {
+            "nodeID": "Advanced Electrics",
+            "dependencies": [ "Electrics" ],
+            "requiresAll": true,
+            "posx": 460,
+            "posy": 660,
+            "parts": [],
+            "cost": 160,
             "unlockedInitially": false
         }
     ]
