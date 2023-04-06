@@ -307,7 +307,7 @@
             "requiresAll": true,
             "posx": 460,
             "posy": 480,
-            "parts": [ "ladder_1v_telescoping_kelus", "ladder_2v_telescoping_kelus", "ladder_3v_telescoping_kelus" ],
+            "parts": [ "ladder_1v_telescoping_kelus", "ladder_2v_telescoping_kelus", "ladder_3v_telescoping_verylong" ],
             "cost": 160,
             "unlockedInitially": false
         },
@@ -467,7 +467,7 @@
             "requiresAll": true,
             "posx": 640,
             "posy": 75,
-            "parts": [],
+            "parts": [ "engine_3v_hydrogen_swerv", "fueltank_5v_inline_hydrogen_sphere" ],
             "cost": 550,
             "unlockedInitially": false
         },

@@ -48,7 +48,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
     private static Dictionary<string, bool> _techsObtained = new();
     private static List<TechTreeNode> _techTreeNodes = new();
-    private static int _techPointBalance = 500;
+    private static int _techPointBalance = 100000;
 
     private static TechTreeNode _focusedNode = null;
 
@@ -240,9 +240,11 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             foreach (var part in _focusedNode.Parts)
             {
                 LocalizedString partName = $"Parts/Title/{part}";
-                partList = String.Concat(partList, partName.ToString());
+                LocalizedString partSubtitle = $"Parts/Subtitle/{part}";
+                if (part == "fueltank_5v_inline_hydrogen_sphere") partList = $"{partList}HFT “Spherotron” Hydrogen Fuel Tank"; // As of KSP 0.1.1.0 this part doesn't have naming implemented correctly; this name is in the files but doesn't appear in-game 
+                else partList = $"{partList}{partName} {partSubtitle}";
                 i--;
-                if (i > 0) partList = String.Concat(partList, ", ");
+                if (i > 0) partList = $"{partList}, ";
             }
             GUILayout.Label("Unlocks Parts: " + partList);
 
