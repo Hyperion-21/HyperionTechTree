@@ -337,7 +337,7 @@
             "requiresAll": true,
             "posx": 550,
             "posy": 75,
-            "parts": [],
+            "parts": [ "engine_1v_hydrogen_nerv", "fueltank_1v_inline_hydrogen_long", "fueltank_2v_inline_hydrogen_short", "fueltank_2v_inline_hydrogen_long" ],
             "cost": 300,
             "unlockedInitially": false
         },
@@ -347,7 +347,7 @@
             "requiresAll": false,
             "posx": 550,
             "posy": 120,
-            "parts": [],
+            "parts": [ "decoupler_3v_inline", "fueltank_3v_inline_methalox_1x2", "fueltank_3v_inline_methalox_1x1", "adapter_3v_methalox_2v-3v" ],
             "cost": 300,
             "unlockedInitially": false
         },
@@ -357,7 +357,7 @@
             "requiresAll": true,
             "posx": 550,
             "posy": 165,
-            "parts": [],
+            "parts": [ "coupler_1v_inline_4point" ],
             "cost": 300,
             "unlockedInitially": false
         },
