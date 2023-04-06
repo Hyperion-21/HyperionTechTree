@@ -374,7 +374,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         [JsonProperty("unlockedInitially")] public bool UnlockedInitially { get; set; }
     }
 
-    // Parts of this code are copy-pasted from VChristof's InteractiveFilter mod
+    // Parts of the next two methods are copy-pasted from VChristof's InteractiveFilter mod
     [HarmonyPatch(typeof(AssemblyFilterContainer), nameof(AssemblyFilterContainer.AddButton))]
     class PatchAssemblyFilterContainer
     {
@@ -387,7 +387,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError(e.Message);
+                _logger.LogError(e.Message);
             }
         }
     }
