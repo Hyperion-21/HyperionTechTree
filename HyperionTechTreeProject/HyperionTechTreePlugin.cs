@@ -94,9 +94,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         _path = PluginFolderPath;
         _swPath = SpaceWarpMetadata.ModID;
-        _logger.LogInfo(_s);
-        _logger.LogInfo($"{PluginFolderPath}{_s}swinfo.json");
-        _logger.LogInfo(File.Exists($"{PluginFolderPath}{_s}swinfo.json").ToString());
 
         Instance = this;
 
@@ -205,6 +202,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             if (File.Exists($"{_path}{_s}assets{_s}images{_s}{node.NodeID}.png")) texture = AssetManager.GetAsset<Texture2D>($"{_swPath}/images/{node.NodeID}.png");
             else
             {
+                // decomment this line once all icons are added
+                // probably also want to make it not be called every frame
                 //_logger.LogWarning($"Could not find button texture for node {node.NodeID}!");
                 texture = Texture2D.blackTexture;
             }
