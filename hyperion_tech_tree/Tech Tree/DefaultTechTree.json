@@ -217,7 +217,7 @@
             "requiresAll": true,
             "posx": 460,
             "posy": 30,
-            "parts": [ "engine_2v_methalox_mainsail" ],
+            "parts": [ "engine_2v_methalox_mainsail", "engine_3v_methalox_labradoodle" ],
             "cost": 160,
             "unlockedInitially": false
         },
@@ -457,7 +457,7 @@
             "requiresAll": false,
             "posx": 640,
             "posy": 30,
-            "parts": [],
+            "parts": [ "engine_1v_methalox_vector", "engine_3v_methalox_rhino", "engine_3v_methalox_mammoth", "booster_2v_solid_clydesdale" ],
             "cost": 550,
             "unlockedInitially": false
         },
@@ -467,7 +467,7 @@
             "requiresAll": true,
             "posx": 640,
             "posy": 75,
-            "parts": [ "engine_3v_hydrogen_swerv", "fueltank_5v_inline_hydrogen_sphere" ],
+            "parts": [ "generator_1v_fission_reactor", "engine_3v_hydrogen_swerv", "fueltank_3v_inline_hydrogen_long", "fueltank_3v_inline_hydrogen_short", "fueltank_4v_inline_hydrogen_long", "fueltank_4v_inline_hydrogen_short", "fueltank_5v_inline_hydrogen_sphere" ],
             "cost": 550,
             "unlockedInitially": false
         },
@@ -477,7 +477,7 @@
             "requiresAll": true,
             "posx": 640,
             "posy": 120,
-            "parts": [],
+            "parts": [ "fueltank_3v_inline_methalox_1x4", "decoupler_4v_inline", "separator_4v_inline", "adapter_4v_methalox_3v-4v", "fueltank_4v_inline_methalox_s1", "fueltank_4v_inline_methalox_s2", "fueltank_4v_inline_methalox_s3", "fueltank_4v_inline_methalox_s4" ],
             "cost": 550,
             "unlockedInitially": false
         },
@@ -487,7 +487,7 @@
             "requiresAll": true,
             "posx": 640,
             "posy": 210,
-            "parts": [],
+            "parts": [ "adapter_2v_2point_1v-2v", "adapter_2v_3point_1v-2v", "adapter_2v_4point_1v-2v", "connector_1v_6point", "dockingport_2v_inline", "dockingport_3v_inline", "dockingring_4v_inline" ],
             "cost": 550,
             "unlockedInitially": false
         },
@@ -497,7 +497,7 @@
             "requiresAll": true,
             "posx": 640,
             "posy": 255,
-            "parts": [],
+            "parts": [ "intake_1v_m1_shockcone", "engine_1v_turboramjet_methane_whiplash", "engine_1v_methalox_dart", "intake_1v_m1_precooler_methane" ],
             "cost": 550,
             "unlockedInitially": false
         },
@@ -507,7 +507,7 @@
             "requiresAll": true,
             "posx": 640,
             "posy": 300,
-            "parts": [],
+            "parts": [ "wing_3v_procedural_spaceplane", "controlsurface_3v_procedural_spaceplane", "stabilizer_3v_procedural_spaceplane", "adapter_3v_m3_methalox_m2-m3", "enginemount_3v_m3", "adapter_3v_m3_methalox_3v-m3", "fueltank_3v_m3_inline_methalox_1x1", "fueltank_3v_m3_inline_methalox_1x2", "fueltank_3v_m3_inline_methalox_1x4", "fueltank_3v_m3_inline_methane_1x4", "fueltank_3v_m3_inline_monoprop", "cargobay_3v_m3_1x4" ],
             "cost": 550,
             "unlockedInitially": false
         },
@@ -517,7 +517,7 @@
             "requiresAll": true,
             "posx": 640,
             "posy": 390,
-            "parts": [],
+            "parts": [ "cockpit_3v_truck_crew", "wheel_2v_rover_ruggedized", "wheel_3v_rover" ],
             "cost": 550,
             "unlockedInitially": false
         },
@@ -527,7 +527,7 @@
             "requiresAll": true,
             "posx": 640,
             "posy": 525,
-            "parts": [],
+            "parts": [ "engine_0v_xenon_dawn", "fueltank_0v_inline_xenon", "fueltank_0v_radial_xenon", "fueltank_1v_inline_xenon_1x1", "fueltank_1v_inline_xenon_1x4" ],
             "cost": 550,
             "unlockedInitially": false
         },
@@ -537,7 +537,7 @@
             "requiresAll": true,
             "posx": 640,
             "posy": 570,
-            "parts": [],
+            "parts": [ "probe_1v_disk_electricity", "probe_1v_hexagonal_electricity" ],
             "cost": 550,
             "unlockedInitially": false
         },
@@ -547,7 +547,7 @@
             "requiresAll": false,
             "posx": 640,
             "posy": 615,
-            "parts": [],
+            "parts": [ "probe_2v_m2_electricity", "antenna_1v_dish_88-88", "antenna_1v_dish_ra-100" ],
             "cost": 550,
             "unlockedInitially": false
         },
@@ -557,7 +557,7 @@
             "requiresAll": true,
             "posx": 640,
             "posy": 660,
-            "parts": [],
+            "parts": [ "storage_2v_battery_electricity", "fuelcell_1v_array" ],
             "cost": 550,
             "unlockedInitially": false
         },
@@ -567,7 +567,7 @@
             "requiresAll": true,
             "posx": 730,
             "posy": 255,
-            "parts": [],
+            "parts": [ "engine_1v_methane-methalox_rapier" ],
             "cost": 1000,
             "unlockedInitially": false
         },
@@ -577,7 +577,7 @@
             "requiresAll": false,
             "posx": 730,
             "posy": 570,
-            "parts": [],
+            "parts": [ "probe_2v_disk_electricity", "probe_3v_disk_electricity", "probe_4v_disk_electricity" ],
             "cost": 1000,
             "unlockedInitially": false
         },
@@ -587,7 +587,7 @@
             "requiresAll": true,
             "posx": 730,
             "posy": 660,
-            "parts": [],
+            "parts": [ "generator_0v_thermoelectric_radioisotope", "generator_3v_thermoelectric_radioisotope" ],
             "cost": 1000,
             "unlockedInitially": false
         }
