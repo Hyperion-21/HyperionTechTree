@@ -1,9 +1,0 @@
-{
-    "modVersion": "0.0.1",
-    "nodes": [
-        {
-            "nodeID": "Start",
-            "parts": [ "engine_1v_methalox_swivel" ]
-        }
-    ]
-}

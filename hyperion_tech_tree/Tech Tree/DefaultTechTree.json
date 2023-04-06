@@ -267,7 +267,7 @@
             "requiresAll": true,
             "posx": 460,
             "posy": 300,
-            "parts": [ "controlsurface_2v_procedural_light", "wing_2v_procedural_heavy", "decoupler_1v_aerodynamic", "decoupler_2v_aerodynamic" ],
+            "parts": [ "controlsurface_2v_procedural_light", "wing_2v_procedural_heavy", "decoupler_1v_aerodynamic" ],
             "cost": 160,
             "unlockedInitially": false
         },
@@ -367,7 +367,7 @@
             "requiresAll": true,
             "posx": 550,
             "posy": 210,
-            "parts": [],
+            "parts": [ "nosecone_3v", "fairing_3v_procedural" ],
             "cost": 300,
             "unlockedInitially": false
         },
@@ -377,7 +377,7 @@
             "requiresAll": true,
             "posx": 550,
             "posy": 255,
-            "parts": [],
+            "parts": [ "intake_1v_ramp_radial_adjustable", "intake_1v_radial", "cockpit_2v_m2_inline_crew", "adapter_2v_m2_methalox_2v-m2", "adapter_2v_m2_1x2_methalox_1v-m2", "fueltank_2v_m2_inline_methalox_1x2", "fueltank_2v_m2_inline_methane_1x2", "fueltank_2v_m2_inline_monoprop", "intake_1v_m1_supersonic_diverterless", "decoupler_2v_aerodynamic", "cargobay_2v_m2_1x2", "cabin_2v_m2_crew" ],
             "cost": 300,
             "unlockedInitially": false
         },
@@ -387,7 +387,7 @@
             "requiresAll": true,
             "posx": 550,
             "posy": 300,
-            "parts": [],
+            "parts": [ "cockpit_3v_m3_crew", "engine_2v_turbofan_methane_goliath", "adapter_3v_m3_conical_methalox_2v-m3", "adapter_3v_m3_rightcone_methalox_2v-m3", "cabin_3v_crew", "fueltank_3v_m3_inline_methane_1x1", "fueltank_3v_m3_inline_methane_1x2", "cargobay_3v_m3_1x2", "cargobay_3v_m3_ramp_1x3", "cargobay_3v_m3_1x1" ],
             "cost": 300,
             "unlockedInitially": false
         },
@@ -397,7 +397,7 @@
             "requiresAll": true,
             "posx": 550,
             "posy": 345,
-            "parts": [],
+            "parts": [ "heatshield_2v_inflatable", "landinggear_3v", "landinggear_4v" ],
             "cost": 300,
             "unlockedInitially": false
         },
@@ -407,7 +407,7 @@
             "requiresAll": false,
             "posx": 550,
             "posy": 390,
-            "parts": [],
+            "parts": [ "seat_0v_external_crew", "probe_1v_rover_electricity", "wheel_1v_rover" ],
             "cost": 300,
             "unlockedInitially": false
         },
@@ -417,7 +417,7 @@
             "requiresAll": true,
             "posx": 550,
             "posy": 435,
-            "parts": [],
+            "parts": [ "pod_3v_conical_crew", "pod_3v_lander_crew" ],
             "cost": 300,
             "unlockedInitially": false
         },
@@ -427,7 +427,7 @@
             "requiresAll": true,
             "posx": 550,
             "posy": 570,
-            "parts": [],
+            "parts": [ "probe_0v_rectangular_electricity", "probe_0v_octagonal_electricity_1x1" ],
             "cost": 300,
             "unlockedInitially": false
         },
@@ -437,7 +437,7 @@
             "requiresAll": false,
             "posx": 550,
             "posy": 615,
-            "parts": [],
+            "parts": [ "antenna_1v_dish_hg55", "antenna_0v_dish_ra-15" ],
             "cost": 300,
             "unlockedInitially": false
         },
@@ -447,7 +447,7 @@
             "requiresAll": true,
             "posx": 550,
             "posy": 660,
-            "parts": [],
+            "parts": [ "solararray_1v_circular", "solararray_1v_circular_shielded", "solararray_2v_accordion", "storage_1v_battery_electricity", "fuelcell_0v" ],
             "cost": 300,
             "unlockedInitially": false
         },
