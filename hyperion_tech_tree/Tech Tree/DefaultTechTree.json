@@ -357,7 +357,7 @@
             "requiresAll": true,
             "posx": 550,
             "posy": 165,
-            "parts": [ "coupler_1v_inline_4point" ],
+            "parts": [ "coupler_1v_inline_4point", "truss_0v_square_1x1", "truss_0v_square_1x1_0-31m", "truss_0v_square_1x4", "truss_0v_square_1x4_0-31m", "truss_1v_circular_1x1", "truss_1v_circular_1x4", "truss_1v_square_1x1", "truss_1v_square_1x4", "truss_2v_circular_1x1", "truss_2v_circular_1x4", "truss_2v_saddle_1x1", "truss_2v_saddle_1x4", "truss_2v_square_1x1", "truss_2v_square_1x4", "truss_3v_circular_1x1", "truss_3v_circular_1x4", "truss_3v_saddle_1x1", "truss_3v_saddle_1x4", "truss_3v_square_1x1", "truss_3v_square_1x4", "truss_4v_circular_1x1", "truss_4v_circular_1x4", "truss_4v_saddle_1x1", "truss_4v_saddle_1x4", "truss_4v_square_1x1", "truss_4v_square_1x4", "adapter_1v_cir-sqr", "adapter_2v_cir-sqr", "adapter_3v_cir-sqr", "adapter_4v_cir-sqr", "tube_0v_procedural", "tube_1v_procedural", "tube_2v_procedural", "tube_3v_procedural", "tube_4v_procedural" ],
             "cost": 300,
             "unlockedInitially": false
         },
@@ -367,7 +367,7 @@
             "requiresAll": true,
             "posx": 550,
             "posy": 210,
-            "parts": [ "nosecone_3v", "fairing_3v_procedural", "cargobay_3v_1x1", "cargobay_3v_1x8", "cargobay_3v_nose", "separator_3v_inline" ],
+            "parts": [ "nosecone_3v", "fairing_3v_procedural", "cargobay_3v_1x1", "cargobay_3v_1x8", "cargobay_3v_nose", "separator_3v_inline", "ibeam_1v_1x5", "ibeam_2v_1x10", "ibeam_2v_2x3", "panel_0v_square", "panel_0v_triangle_equilateral", "panel_0v_triangle_right", "panel_1v_square", "panel_1v_triangle_equilateral", "panel_1v_triangle_right", "panel_2v_square", "panel_2v_triangle_equilateral", "panel_2v_triangle_right" ],
             "cost": 300,
             "unlockedInitially": false
         },
@@ -517,7 +517,7 @@
             "requiresAll": true,
             "posx": 640,
             "posy": 390,
-            "parts": [ "cockpit_3v_truck_crew", "wheel_2v_rover_ruggedized", "wheel_2v_truck", "wheel_3v_rover" ],
+            "parts": [ "cockpit_3v_truck_crew", "chassis_3v_truck", "wheel_2v_rover_ruggedized", "wheel_2v_truck", "wheel_3v_rover" ],
             "cost": 550,
             "unlockedInitially": false
         },
