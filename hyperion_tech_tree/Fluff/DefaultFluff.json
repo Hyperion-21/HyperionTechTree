@@ -1,0 +1,41 @@
+{
+    "globalStrings": [
+        "Checking the Mystery Goo...",
+        "Gooing the Mystery Check...",
+        "Investigating a reading from the Kraken Radar...",
+        "Testing if the music radio works...",
+        "Measuring gravity readings...",
+        "Eating some Graviolis...",
+        "Consulting Science Sr. for help...",
+        "Tutoring Science Jr..."
+    ],
+    "kerbalStrings": [
+        "Looking out the window...",
+        "Taking a selfie with Kerbol...",
+        "Floating in zero gravity...",
+        "Testing the door..."
+    ],
+    "probeStrings": [
+        "Calculating pi...",
+        "Becoming self-aware..."
+    ],
+    "vacuumStrings": [
+        "Measuring Magnetosphere...",
+        "Booming the Magnetosphere...",
+        "Measuring the air pressure of space...",
+        "Measuring the temperature of space...",
+        "Searching for asteroids..."
+    ],
+    "atmopshereStrings": [
+        "Performing Atmospheric Fluid Spectro-Variometer Analysis...",
+        "Measuring external temperature...",
+        "Measuring air pressure..."
+    ],
+    "landedStrings": [
+        "Measuring microscopic earthquakes..."
+    ],
+    "splashedStrings": [
+        "Time to drink water..."
+    ]
+
+}
