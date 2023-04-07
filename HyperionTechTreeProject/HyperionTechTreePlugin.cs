@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using KSP.OAB;
 using I2.Loc;
 using UnityEngine.UIElements;
+using KSP.Game;
 
 namespace HyperionTechTree;
 
@@ -44,10 +45,12 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private const string ToolbarOABButtonID = "BTN-HyperionTechTreeOAB";
 
     private static string _jsonFilePath;
-    private static TechTree _jsonObject;
+    private static TechTree _jsonTechTree;
+    private static Goals _jsonGoals;
 
     private static Dictionary<string, bool> _techsObtained = new();
     private static List<TechTreeNode> _techTreeNodes = new();
+    private static List<GoalsBody> _goals = new();
     private static int _techPointBalance = 100000;
 
     private static TechTreeNode _focusedNode = null;
@@ -62,6 +65,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     // (because of course the difference between / and \ becomes relevant in this code)
     private static readonly char _s = Path.DirectorySeparatorChar;
     private string DefaultTechTreeFilePath => $"{PluginFolderPath}{_s}Tech Tree{_s}DefaultTechTree.json";
+    private string DefaultGoalsFilePath => $"{PluginFolderPath}{_s}Goals{_s}DefaultGoals.json";
     private static string _path;
     private static string _swPath;
 
@@ -125,6 +129,18 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         Harmony.CreateAndPatchAll(typeof(HyperionTechTreePlugin).Assembly);
 
         GenerateTechs();
+        GenerateGoals();
+
+        foreach (var goal in _goals)
+        {
+            _logger.LogInfo($"Body Name: {goal.BodyName}");
+            _logger.LogInfo($"Atmosphere Threshold: {goal.AtmosphereThreshold}");
+        }
+    }
+
+    private void Update()
+    {
+        //_logger.LogInfo(Game.GlobalGameState.GetState().ToString());
     }
 
     /// <summary>
@@ -158,141 +174,149 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static void FillWindow(int windowID)
     {
         Color defaultColor = GUI.backgroundColor;
-        foreach (var node in _techTreeNodes)
-        {
-            foreach (var dependency in node.Dependencies)
-            {
-                DrawLine(
-                    node.PosX + (ButtonSize / 2) + (0.5 * LineWidth), 
-                    node.PosY + (ButtonSize / 2) + (0.5 * LineWidth), 
-                    _techTreeNodes.Find(x => x.NodeID == dependency).PosX + (ButtonSize / 2) + (0.5 * LineWidth), 
-                    _techTreeNodes.Find(x => x.NodeID == dependency).PosY + (ButtonSize / 2) + (0.5 * LineWidth)
-                );
-            }
-        }
 
-        foreach (var node in _techTreeNodes)
+        if (Game.GlobalGameState.GetState() == GameState.VehicleAssemblyBuilder)
         {
-
-            if (_techsObtained[node.NodeID]) GUI.backgroundColor = Color.green;
-            else
+            foreach (var node in _techTreeNodes)
             {
-                GUI.backgroundColor = Color.blue;
-                int i = node.Dependencies.Count;
                 foreach (var dependency in node.Dependencies)
                 {
-                    if (!_techsObtained[dependency])
-                    {
-                        i--;
-                        if (node.RequiresAll)
-                        {
-                            GUI.backgroundColor = Color.red;
-                        }
-                        if (!node.RequiresAll && i == 0)
-                        {
-                            GUI.backgroundColor = Color.red;
-                        }
-                    }
-
+                    DrawLine(
+                        node.PosX + (ButtonSize / 2) + (0.5 * LineWidth),
+                        node.PosY + (ButtonSize / 2) + (0.5 * LineWidth),
+                        _techTreeNodes.Find(x => x.NodeID == dependency).PosX + (ButtonSize / 2) + (0.5 * LineWidth),
+                        _techTreeNodes.Find(x => x.NodeID == dependency).PosY + (ButtonSize / 2) + (0.5 * LineWidth)
+                    );
                 }
             }
-            if (_focusedNode != null) if (_focusedNode.NodeID == node.NodeID) GUI.backgroundColor = Color.white;
 
-            Texture2D texture;
-            if (File.Exists($"{_path}{_s}assets{_s}images{_s}{node.NodeID}.png")) texture = AssetManager.GetAsset<Texture2D>($"{_swPath}/images/{node.NodeID}.png");
-            else
+            foreach (var node in _techTreeNodes)
             {
-                // decomment this line once all icons are added
-                // probably also want to make it not be called every frame
-                //_logger.LogWarning($"Could not find button texture for node {node.NodeID}!");
-                texture = Texture2D.blackTexture;
+
+                if (_techsObtained[node.NodeID]) GUI.backgroundColor = Color.green;
+                else
+                {
+                    GUI.backgroundColor = Color.blue;
+                    int i = node.Dependencies.Count;
+                    foreach (var dependency in node.Dependencies)
+                    {
+                        if (!_techsObtained[dependency])
+                        {
+                            i--;
+                            if (node.RequiresAll)
+                            {
+                                GUI.backgroundColor = Color.red;
+                            }
+                            if (!node.RequiresAll && i == 0)
+                            {
+                                GUI.backgroundColor = Color.red;
+                            }
+                        }
+
+                    }
+                }
+                if (_focusedNode != null) if (_focusedNode.NodeID == node.NodeID) GUI.backgroundColor = Color.white;
+
+                Texture2D texture;
+                if (File.Exists($"{_path}{_s}assets{_s}images{_s}{node.NodeID}.png")) texture = AssetManager.GetAsset<Texture2D>($"{_swPath}/images/{node.NodeID}.png");
+                else
+                {
+                    // decomment this line once all icons are added
+                    // probably also want to make it not be called every frame
+                    //_logger.LogWarning($"Could not find button texture for node {node.NodeID}!");
+                    texture = Texture2D.blackTexture;
+                }
+
+
+
+                if (GUI.Button(new Rect(node.PosX, node.PosY, ButtonSize, ButtonSize), texture))
+                {
+                    _focusedNode = node;
+                }
             }
-
-
-
-            if (GUI.Button(new Rect(node.PosX, node.PosY, ButtonSize, ButtonSize), texture))
+            GUI.backgroundColor = defaultColor;
+            GUILayout.Space(_techTreey2 + 10);
+            if (_focusedNode != null)
             {
-                _focusedNode = node;
-            }
-        }
-        GUI.backgroundColor = defaultColor;
-        GUILayout.Space(_techTreey2 + 10);
-        if (_focusedNode != null) 
-        {
-            GUILayout.Label($"Selected Node: {_focusedNode.NodeID}");
+                GUILayout.Label($"Selected Node: {_focusedNode.NodeID}");
 
-            string requirementPrefix;
-            if (_focusedNode.Dependencies.Count > 1) requirementPrefix = _focusedNode.RequiresAll ? "Requires All: " : "Requires Any: ";
-            else requirementPrefix = "Requires: ";
-            
-            string dependencyList = "";
-            int i = _focusedNode.Dependencies.Count;
-            foreach (var dependency in _focusedNode.Dependencies)
-            {
-                dependencyList = String.Concat(dependencyList, dependency);
-                i--;
-                if (i > 0) dependencyList = String.Concat(dependencyList, ", ");
-            }
-            GUILayout.Label(requirementPrefix + dependencyList);
+                string requirementPrefix;
+                if (_focusedNode.Dependencies.Count > 1) requirementPrefix = _focusedNode.RequiresAll ? "Requires All: " : "Requires Any: ";
+                else requirementPrefix = "Requires: ";
 
-            string partList = "";
-            i = _focusedNode.Parts.Count;
-            foreach (var part in _focusedNode.Parts)
-            {
-                LocalizedString partName = $"Parts/Title/{part}";
-                LocalizedString partSubtitle = $"Parts/Subtitle/{part}";
-                if (part == "fueltank_5v_inline_hydrogen_sphere") partList = $"{partList}HFT “Spherotron” Hydrogen Fuel Tank"; // As of KSP 0.1.1.0 this part doesn't have naming implemented correctly; this name is in the files but doesn't appear in-game 
-                else partList = $"{partList}{partName} {partSubtitle}";
-                i--;
-                if (i > 0) partList = $"{partList}, ";
-            }
-            GUILayout.Label("Unlocks Parts: " + partList);
-
-            if (_techsObtained[_focusedNode.NodeID])
-            {
-                GUILayout.Label("You already own this tech!");
-            }
-            else
-            {
-                bool skipButtonFlag = false;
-                int j = _focusedNode.Dependencies.Count;
+                string dependencyList = "";
+                int i = _focusedNode.Dependencies.Count;
                 foreach (var dependency in _focusedNode.Dependencies)
                 {
-                    if (!_techsObtained[dependency])
-                    {
-                        j--;
-                        if (_focusedNode.RequiresAll)
-                        {
-                            skipButtonFlag = true;
-                            GUILayout.Label($"Missing dependency {dependency}!");
-                        }
-                        if (!_focusedNode.RequiresAll && j == 0)
-                        {
-                            skipButtonFlag = true;
-                            GUILayout.Label("Missing all dependencies!");
-                        }
-                    }
+                    dependencyList = String.Concat(dependencyList, dependency);
+                    i--;
+                    if (i > 0) dependencyList = String.Concat(dependencyList, ", ");
                 }
-                if (!skipButtonFlag)
+                GUILayout.Label(requirementPrefix + dependencyList);
+
+                string partList = "";
+                i = _focusedNode.Parts.Count;
+                foreach (var part in _focusedNode.Parts)
                 {
-                    defaultColor = GUI.backgroundColor;
-                    GUI.backgroundColor = _focusedNode.Cost > _techPointBalance ? Color.red : Color.blue;
-                    if (GUILayout.Button(_focusedNode.Cost > _techPointBalance ? $"Tech Is Too Expensive! Costs {_focusedNode.Cost} Tech Points (You Have {_techPointBalance})" : $"Unlock Tech. Costs {_focusedNode.Cost} Tech Points (You Have {_techPointBalance})"))
+                    LocalizedString partName = $"Parts/Title/{part}";
+                    LocalizedString partSubtitle = $"Parts/Subtitle/{part}";
+                    if (part == "fueltank_5v_inline_hydrogen_sphere") partList = $"{partList}HFT “Spherotron” Hydrogen Fuel Tank"; // As of KSP 0.1.1.0 this part doesn't have naming implemented correctly; this name is in the files but doesn't appear in-game 
+                    else partList = $"{partList}{partName} {partSubtitle}";
+                    i--;
+                    if (i > 0) partList = $"{partList}, ";
+                }
+                GUILayout.Label("Unlocks Parts: " + partList);
+
+                if (_techsObtained[_focusedNode.NodeID])
+                {
+                    GUILayout.Label("You already own this tech!");
+                }
+                else
+                {
+                    bool skipButtonFlag = false;
+                    int j = _focusedNode.Dependencies.Count;
+                    foreach (var dependency in _focusedNode.Dependencies)
                     {
-                        if (_focusedNode.Cost <= _techPointBalance)
+                        if (!_techsObtained[dependency])
                         {
-                            _techsObtained[_focusedNode.NodeID] = true;
-                            _techPointBalance -= _focusedNode.Cost;
+                            j--;
+                            if (_focusedNode.RequiresAll)
+                            {
+                                skipButtonFlag = true;
+                                GUILayout.Label($"Missing dependency {dependency}!");
+                            }
+                            if (!_focusedNode.RequiresAll && j == 0)
+                            {
+                                skipButtonFlag = true;
+                                GUILayout.Label("Missing all dependencies!");
+                            }
                         }
                     }
-                    GUI.backgroundColor = defaultColor;
+                    if (!skipButtonFlag)
+                    {
+                        defaultColor = GUI.backgroundColor;
+                        GUI.backgroundColor = _focusedNode.Cost > _techPointBalance ? Color.red : Color.blue;
+                        if (GUILayout.Button(_focusedNode.Cost > _techPointBalance ? $"Tech Is Too Expensive! Costs {_focusedNode.Cost} Tech Points (You Have {_techPointBalance})" : $"Unlock Tech. Costs {_focusedNode.Cost} Tech Points (You Have {_techPointBalance})"))
+                        {
+                            if (_focusedNode.Cost <= _techPointBalance)
+                            {
+                                _techsObtained[_focusedNode.NodeID] = true;
+                                _techPointBalance -= _focusedNode.Cost;
+                            }
+                        }
+                        GUI.backgroundColor = defaultColor;
+                    }
                 }
+
             }
-            
+            else
+            {
+                GUILayout.Label("No nodes selected! Click on a node to bring up information!");
+            }
         }
-        else
+        else if (Game.GlobalGameState.GetState() == GameState.FlightView)
         {
-            GUILayout.Label("No nodes selected! Click on a node to bring up information!");
+            
         }
 
         GUI.DragWindow(new Rect(0, 0, 10000, 500));
@@ -306,7 +330,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     {
         _jsonFilePath = jsonFilePath;
         var jsonString = File.ReadAllText(_jsonFilePath);
-        _jsonObject = JsonConvert.DeserializeObject<TechTree>(jsonString);
+        _jsonTechTree = JsonConvert.DeserializeObject<TechTree>(jsonString);
     }
 
     /// <summary>
@@ -318,18 +342,19 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         // The current system for having duplicate nodes ignores everything except the parts list
         // of the dupe node, which is an issue if the node that declares all of the non-part data
         // is loaded as a duplicate node. Loading it in first fixes this issue.
-        if (File.Exists(DefaultTechTreeFilePath)) GenerateNode(DefaultTechTreeFilePath);
+        if (File.Exists(DefaultTechTreeFilePath)) Generate(DefaultTechTreeFilePath);
         foreach (string file in Directory.GetFiles($"{PluginFolderPath}{_s}Tech Tree"))
         {
-            if (file != DefaultTechTreeFilePath) GenerateNode(file);
+            if (file != DefaultTechTreeFilePath) Generate(file);
         }
 
-        // I've never used a local method before
-        void GenerateNode(string file)
+        void Generate(string file)
         {
             _logger.LogInfo($"Found tech tree! {file}");
-            CreateJsonReader(file);
-            foreach (var node in _jsonObject.Nodes)
+            _jsonFilePath = file;
+            var jsonString = File.ReadAllText(_jsonFilePath);
+            _jsonTechTree = JsonConvert.DeserializeObject<TechTree>(jsonString);
+            foreach (var node in _jsonTechTree.Nodes)
             {
                 
                 if (_techTreeNodes.Exists(x => x.NodeID == node.NodeID))
@@ -346,24 +371,56 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 if (node.PosY < _techTreey1) _techTreey1 = node.PosY;
                 if (node.PosY > _techTreex2) _techTreey2 = node.PosY;
             }
-            if (_jsonObject.ModVersion != MyPluginInfo.PLUGIN_VERSION)
+            if (_jsonTechTree.ModVersion != MyPluginInfo.PLUGIN_VERSION)
             {
                 _logger.LogWarning($"Version mismatch between mod version and the version of {file}!");
-                _logger.LogWarning($"Mod Version: {_jsonObject.ModVersion} | Tech Tree Version: {MyPluginInfo.PLUGIN_VERSION}");
+                _logger.LogWarning($"Mod Version: {MyPluginInfo.PLUGIN_VERSION} | Tech Tree Version: {_jsonTechTree.ModVersion}");
+            }
+        }
+    }
+
+    private void GenerateGoals()
+    {
+        if (File.Exists(DefaultGoalsFilePath)) Generate(DefaultGoalsFilePath);
+        foreach (string file in Directory.GetFiles($"{PluginFolderPath}{_s}Goals"))
+        {
+            if (file != DefaultGoalsFilePath) Generate(file);
+        }
+
+        void Generate(string file)
+        {
+            _logger.LogInfo($"Found goals file! {file}");
+            _jsonFilePath = file;
+            var jsonString = File.ReadAllText(_jsonFilePath);
+            _jsonGoals = JsonConvert.DeserializeObject<Goals>(jsonString);
+            foreach (var goal in _jsonGoals.Bodies)
+            {
+
+                if (_goals.Exists(x => x.BodyName == goal.BodyName))
+                {
+                    _logger.LogError($"Found multiple goal files for celestial body {goal.BodyName}! Current build doesn't support goal merging!");
+                    continue;
+                }
+                _goals.Add(goal);
+            }
+            if (_jsonGoals.ModVersion != MyPluginInfo.PLUGIN_VERSION)
+            {
+                _logger.LogWarning($"Version mismatch between mod version and the version of {file}!");
+                _logger.LogWarning($"Mod Version: {MyPluginInfo.PLUGIN_VERSION} | Goal Version: {_jsonGoals.ModVersion}");
             }
         }
     }
 
 
     [JsonObject(MemberSerialization.OptIn)]
-    public class TechTree
+    private class TechTree
     {
         [JsonProperty("modVersion")] public string ModVersion { get; set; }
         [JsonProperty("nodes")] public List<TechTreeNode> Nodes { get; set; }
     }
 
     [JsonObject(MemberSerialization.OptIn)]
-    public class TechTreeNode
+    private class TechTreeNode
     {
         [JsonProperty("nodeID")] public string NodeID { get; set; }
         [JsonProperty("dependencies")] public List<string> Dependencies { get; set; }
@@ -373,6 +430,30 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         [JsonProperty("parts")] public List<string> Parts { get; set; }
         [JsonProperty("cost")] public int Cost { get; set; }
         [JsonProperty("unlockedInitially")] public bool UnlockedInitially { get; set; }
+    }
+
+    [JsonObject(MemberSerialization.OptIn)]
+    private class Goals
+    {
+        [JsonProperty("modVersion")] public string ModVersion { get; set; }
+        [JsonProperty("bodies")] public List<GoalsBody> Bodies { get; set; }
+    }
+
+    [JsonObject(MemberSerialization.OptIn)]
+    private class GoalsBody
+    {
+        [JsonProperty("bodyName")] public string BodyName { get; set; }
+        [JsonProperty("referenceBody")] public string ReferenceBody { get; set; }
+        [JsonProperty("spaceThreshold")] public double SpaceThreshold { get; set; }
+        [JsonProperty("atmosphereThreshold")] public double AtmosphereThreshold { get; set; }
+        [JsonProperty("hasAtmosphere")] public bool HasAtmosphere { get; set; }
+        [JsonProperty("hasSurface")] public bool HasSurface { get; set; }
+        [JsonProperty("highSpaceAward")] public float HighSpaceAward { get; set; }
+        [JsonProperty("lowSpaceAward")] public float LowSpaceAward { get; set; }
+        [JsonProperty("orbitAward")] public float OrbitAward { get; set; }
+        [JsonProperty("highAtmosphereAward")] public float HighAtmosphereAward { get; set; }
+        [JsonProperty("lowAtmosphereAward")] public float LowAtmosphereAward { get; set; }
+        [JsonProperty("landedAward")] public float LandedAward { get; set; }
     }
 
     // Parts of the next two methods are copy-pasted from VChristof's InteractiveFilter mod
