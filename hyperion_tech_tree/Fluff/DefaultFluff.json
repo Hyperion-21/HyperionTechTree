@@ -20,8 +20,8 @@
         "Becoming self-aware..."
     ],
     "vacuumStrings": [
-        "Measuring Magnetosphere...",
-        "Booming the Magnetosphere...",
+        "Measuring magnetosphere...",
+        "Booming the magnetosphere...",
         "Measuring the air pressure of space...",
         "Measuring the temperature of space...",
         "Searching for asteroids..."
@@ -35,7 +35,90 @@
         "Measuring microscopic earthquakes..."
     ],
     "splashedStrings": [
-        "Time to drink water..."
+        "Time to drink water...",
+        "Testing for life...",
+        "Putting on swimsuits..."
+    ],
+    "kerbolStrings": [
+        "Comparing hues of-- OW THAT'S BRIGHT",
+        "Overloading solar panels..."
+    ],
+    "mohoStrings": [
+        "Comparing hues of-- OW THAT BURNS!",
+        "Looking northwards..."
+    ],
+    "eveStrings": [
+        "Comparing hues of purple...",
+        "Crushing snack cans with the air pressure...",
+        "Figuring out how to get back home..."
+    ],
+    "gillyStrings": [
+        "Comparing hues of brown...",
+        "Bouncing around...",
+        "Trying to stay on the ground..."
+    ],
+    "kerbinStrings": [
+        "Comparing hues of green...",
+        "Comparing hues of blue...",
+        "Testing oxygen concentration..."
+    ],
+    "munStrings": [
+        "Comparing hues of white...",
+        "Saying iconic catchphrases...",
+        "Looking back home..."
+    ],
+    "minmusStrings": [
+        "Comparing hues of green...",
+        "Looking in the glass..."
+    ],
+    "dunaStrings": [
+        "Comparing hues of red...",
+        "Trying to fly paper planes..."
+    ],
+    "ikeStrings": [
+        "Comparing hues of dark gray...",
+        "Looking up at big red..."
+    ],
+    "dresStrings": [
+        "Comparing hues of dark gray...",
+        "Remembering Dres exists...",
+        "Looking up at the rings..."
+    ],
+    "joolStrings": [
+        "Comparing hues of green...",
+        "Finding where all the Joolian moons are...",
+        "Planning gravity assist..."
+    ],
+    "laytheStrings": [
+        "Comparing hues of blue...",
+        "Forgetting Kerbin exists...",
+        "Inspecting the salt..."
+    ],
+    "vallStrings": [
+        "Comparing hues of cyan...",
+        "Becoming one with the ice...",
+        "Trying to find water..."
+    ],
+    "tyloStrings": [
+        "Comparing hues of tan...",
+        "Figuring out how we got here...",
+        "Comparing gravity to Kerbin..."
+    ],
+    "bopStrings": [
+        "Comparing hues of brown...",
+        "Investigating the crater...",
+        "KRAKEN READINGS OFF THE CHARTS!",
+        "oh god the eyes"
+    ],
+    "polStrings": [
+        "Comparing hues of yellow...",
+        "Realizing where Pol's name comes from...",
+        "Testing radiation levels...",
+        "Figuring out where that smell is coming from..."
+    ],
+    "eelooStrings": [
+        "Comparing hues of white...",
+        "Forgetting Kerbol exists...",
+        "Looking down the ravines..."
     ]
-
 }
