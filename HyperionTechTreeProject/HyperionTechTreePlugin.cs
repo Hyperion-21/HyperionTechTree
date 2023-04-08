@@ -13,6 +13,8 @@ using KSP.OAB;
 using I2.Loc;
 using UnityEngine.UIElements;
 using KSP.Game;
+using KSP.Messages;
+using SpaceWarp.API.Game;
 
 namespace HyperionTechTree;
 
@@ -47,6 +49,19 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     }
     private static WindowTabs _windowTab = WindowTabs.TechTree;
 
+    private const float ScienceSecondsOfDelay = 10;
+    private enum CraftSituation
+    {
+        Landed,
+        Splashed,
+        LowAtmosphere,
+        HighAtmosphere,
+        LowSpace,
+        HighSpace
+    }
+    private static CraftSituation _craftSituation = CraftSituation.Landed;
+    private static CraftSituation _craftSituationOld = CraftSituation.Landed;
+
     private const string ToolbarFlightButtonID = "BTN-HyperionTechTreeFlight";
     private const string ToolbarOABButtonID = "BTN-HyperionTechTreeOAB";
 
@@ -57,7 +72,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static Dictionary<string, bool> _techsObtained = new();
     private static List<TechTreeNode> _techTreeNodes = new();
     private static List<GoalsBody> _goals = new();
-    private static int _techPointBalance = 100000;
+    private static float _techPointBalance = 100000;
 
     private static TechTreeNode _focusedNode = null;
 
@@ -141,6 +156,62 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         {
             _logger.LogInfo($"Body Name: {goal.BodyName}");
             _logger.LogInfo($"Atmosphere Threshold: {goal.AtmosphereThreshold}");
+        }
+    }
+
+    private void Update()
+    {
+        if (Game.GlobalGameState.GetState() != GameState.FlightView) return;
+        var simVessel = Vehicle.ActiveSimVessel;
+        var vesselVehicle = Vehicle.ActiveVesselVehicle;
+        float awardAmount = 0;
+        foreach (var body in _goals)
+        {
+            if (body.BodyName != simVessel.mainBody.bodyName) continue;
+            if ((int)simVessel.Situation <= 2 && simVessel.Situation != KSP.Sim.impl.VesselSituations.Splashed)
+            {
+                _craftSituation = CraftSituation.Landed;
+                awardAmount = body.LandedAward;
+                _logger.LogInfo("Craft is landed!");
+            }
+            else if (simVessel.Situation == KSP.Sim.impl.VesselSituations.Splashed)
+            {
+                _craftSituation = CraftSituation.Splashed;
+                awardAmount = body.LandedAward;
+                _logger.LogInfo("Craft is splashed!");
+            }
+            else if (simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel < body.AtmosphereThreshold && (int)simVessel.Situation > 2)
+            {
+                _craftSituation = CraftSituation.LowAtmosphere;
+                awardAmount = body.LowAtmosphereAward;
+                _logger.LogInfo("Craft is flying in low atmosphere!");
+            }
+            else if (simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel >= body.AtmosphereThreshold)
+            {
+                _craftSituation = CraftSituation.HighAtmosphere;
+                awardAmount = body.HighAtmosphereAward;
+                _logger.LogInfo("Craft is flying in high atmosphere!");
+            }
+            else if (!simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel < body.SpaceThreshold)
+            {
+                _craftSituation = CraftSituation.LowSpace;
+                awardAmount = body.LowSpaceAward;
+                _logger.LogInfo("Craft is flying in low space!");
+            }
+            else if (!simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel >= body.SpaceThreshold)
+            {
+                _craftSituation = CraftSituation.HighSpace;
+                awardAmount = body.HighSpaceAward;
+                _logger.LogInfo("Craft is flying in high space!");
+            }
+
+
+            if (_craftSituation != _craftSituationOld)
+            {
+                _techPointBalance += awardAmount;
+                _logger.LogInfo($"Changed craft situation! Awarding {awardAmount}");
+                _craftSituationOld = _craftSituation;
+            }
         }
     }
 
@@ -447,7 +518,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         [JsonProperty("posx")] public float PosX { get; set; }
         [JsonProperty("posy")] public float PosY { get; set; }
         [JsonProperty("parts")] public List<string> Parts { get; set; }
-        [JsonProperty("cost")] public int Cost { get; set; }
+        [JsonProperty("cost")] public float Cost { get; set; }
         [JsonProperty("unlockedInitially")] public bool UnlockedInitially { get; set; }
     }
 

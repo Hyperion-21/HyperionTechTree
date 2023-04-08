@@ -4,7 +4,7 @@
         {
             "bodyName": "Kerbol",
             "spaceThreshold": 1000000000,
-            "atmosphereThreshold": 600000,
+            "atmosphereThreshold": 18000,
             "hasAtmosphere": true,
             "hasSurface": false,
             "highSpaceAward": 80,
@@ -18,12 +18,12 @@
             "bodyName": "Kerbin",
             "referenceBody": "Kerbol",
             "spaceThreshold": 250000,
-            "atmosphereThreshold": 70000,
+            "atmosphereThreshold": 18000,
             "hasAtmosphere": true,
             "hasSurface": true,
             "highSpaceAward": 60,
             "lowSpaceAward:": 40,
-            "orbitAward": 0,
+            "orbitAward": 50,
             "highAtmosphereAward": 36,
             "lowAtmosphereAward": 28,
             "landedAward": 0
