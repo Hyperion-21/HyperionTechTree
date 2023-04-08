@@ -40,6 +40,12 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static float _techTreex2 = -10000;
     private static float _techTreey1 = 10000;
     private static float _techTreey2 = -10000;
+    private enum WindowTabs
+    {
+        TechTree,
+        Goals
+    }
+    private static WindowTabs _windowTab = WindowTabs.TechTree;
 
     private const string ToolbarFlightButtonID = "BTN-HyperionTechTreeFlight";
     private const string ToolbarOABButtonID = "BTN-HyperionTechTreeOAB";
@@ -138,11 +144,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         }
     }
 
-    private void Update()
-    {
-        //_logger.LogInfo(Game.GlobalGameState.GetState().ToString());
-    }
-
     /// <summary>
     /// Draws a simple UI window when <code>this._isWindowOpen</code> is set to <code>true</code>.
     /// </summary>
@@ -154,8 +155,16 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         if (_isWindowOpen)
         {
-            _windowWidth = _techTreex2 + 150; // For some reason, making the horizontal margin smaller messes with line rendering
-            _windowHeight = _techTreey2 + 100;
+            if (_windowTab == WindowTabs.TechTree)
+            {
+                _windowWidth = _techTreex2 + 650;
+                _windowHeight = _techTreey2 + 100;
+            } else
+            {
+                _windowWidth = 200;
+                _windowHeight = 200;
+            }
+            
             _windowRect = GUILayout.Window(
                 GUIUtility.GetControlID(FocusType.Passive),
                 _windowRect,
@@ -174,8 +183,21 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static void FillWindow(int windowID)
     {
         Color defaultColor = GUI.backgroundColor;
+        GUILayout.Label("", GUILayout.Width(_windowWidth), GUILayout.Height(_windowHeight));
 
-        if (Game.GlobalGameState.GetState() == GameState.VehicleAssemblyBuilder)
+        Texture2D tex = new(1, 1);
+        //double secondsInCurrentSecond = ((DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds % 1000)  / 1000;
+        //_logger.LogInfo(secondsInCurrentSecond);
+        //Color sidebarColor = new((float)secondsInCurrentSecond, (float)secondsInCurrentSecond, (float)secondsInCurrentSecond);
+        //_logger.LogInfo(sidebarColor.ToString());
+        //tex.SetPixel(0, 0, sidebarColor);
+        GUI.DrawTexture(new Rect(0, 0, 120, 10000), tex);
+        GUI.backgroundColor = (_windowTab == WindowTabs.TechTree) ? Color.yellow : Color.blue;
+        if (GUI.Button(new Rect(10, 10, 100, 25), "Tech Tree")) _windowTab = WindowTabs.TechTree;
+        GUI.backgroundColor = (_windowTab == WindowTabs.Goals) ? Color.yellow : Color.blue;
+        if (GUI.Button(new Rect(10, 45, 100, 25), "Goals")) _windowTab = WindowTabs.Goals;
+
+        if (_windowTab == WindowTabs.TechTree)
         {
             foreach (var node in _techTreeNodes)
             {
@@ -227,18 +249,14 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                     texture = Texture2D.blackTexture;
                 }
 
-
-
-                if (GUI.Button(new Rect(node.PosX, node.PosY, ButtonSize, ButtonSize), texture))
-                {
-                    _focusedNode = node;
-                }
+                if (GUI.Button(new Rect(node.PosX, node.PosY, ButtonSize, ButtonSize), texture)) _focusedNode = node;
             }
             GUI.backgroundColor = defaultColor;
-            GUILayout.Space(_techTreey2 + 10);
+            // GUILayout.Space(_techTreey2 + 10);
             if (_focusedNode != null)
             {
-                GUILayout.Label($"Selected Node: {_focusedNode.NodeID}");
+
+                GUI.Label(new Rect(_techTreex2 + 10, _techTreey1, 600, 10000), $"Selected Node: {_focusedNode.NodeID}");
 
                 string requirementPrefix;
                 if (_focusedNode.Dependencies.Count > 1) requirementPrefix = _focusedNode.RequiresAll ? "Requires All: " : "Requires Any: ";
@@ -252,7 +270,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                     i--;
                     if (i > 0) dependencyList = String.Concat(dependencyList, ", ");
                 }
-                GUILayout.Label(requirementPrefix + dependencyList);
+                GUI.Label(new Rect(_techTreex2 + 10, _techTreey1 + 20, 600, 10000), requirementPrefix + dependencyList);
 
                 string partList = "";
                 i = _focusedNode.Parts.Count;
@@ -265,11 +283,11 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                     i--;
                     if (i > 0) partList = $"{partList}, ";
                 }
-                GUILayout.Label("Unlocks Parts: " + partList);
+                GUI.Label(new Rect(_techTreex2 + 10, _techTreey1 + 40, 600, 10000), "Unlocks Parts: " + partList);
 
                 if (_techsObtained[_focusedNode.NodeID])
                 {
-                    GUILayout.Label("You already own this tech!");
+                    GUI.Label(new Rect(_techTreex1, _techTreey2 + 10, 1000, 10000), "You already own this tech!");
                 }
                 else
                 {
@@ -283,12 +301,12 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                             if (_focusedNode.RequiresAll)
                             {
                                 skipButtonFlag = true;
-                                GUILayout.Label($"Missing dependency {dependency}!");
+                                GUI.Label(new Rect(_techTreex1, _techTreey2 + 10 + 20 * (_focusedNode.Dependencies.Count - (j + 1)), 1000, 10000), $"Missing dependency {dependency}!");
                             }
                             if (!_focusedNode.RequiresAll && j == 0)
                             {
                                 skipButtonFlag = true;
-                                GUILayout.Label("Missing all dependencies!");
+                                GUI.Label(new Rect(_techTreex1, _techTreey2 + 10, 1000, 10000), "Missing all dependencies!");
                             }
                         }
                     }
@@ -311,12 +329,12 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             }
             else
             {
-                GUILayout.Label("No nodes selected! Click on a node to bring up information!");
+                GUI.Label(new Rect(_techTreex2 + 10, _techTreey1, 300, 10000), "No nodes selected! Click on a node to bring up information!");
             }
         }
-        else if (Game.GlobalGameState.GetState() == GameState.FlightView)
+        else if (_windowTab == WindowTabs.Goals)
         {
-            
+            GUILayout.Label("Heyo");
         }
 
         GUI.DragWindow(new Rect(0, 0, 10000, 500));
@@ -366,10 +384,11 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 }
                 _techTreeNodes.Add(node);
                 _techsObtained.Add(node.NodeID, node.UnlockedInitially);
+                node.PosX += 115;
                 if (node.PosX < _techTreex1) _techTreex1 = node.PosX;
-                if (node.PosX > _techTreex2) _techTreex2 = node.PosX;
+                if (node.PosX > _techTreex2) _techTreex2 = node.PosX + ButtonSize;
                 if (node.PosY < _techTreey1) _techTreey1 = node.PosY;
-                if (node.PosY > _techTreex2) _techTreey2 = node.PosY;
+                if (node.PosY > _techTreex2) _techTreey2 = node.PosY + ButtonSize;
             }
             if (_jsonTechTree.ModVersion != MyPluginInfo.PLUGIN_VERSION)
             {
