@@ -86,8 +86,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     // (because of course the difference between / and \ becomes relevant in this code)
     private static readonly char _s = Path.DirectorySeparatorChar;
     private static string PluginFolderPathStatic;
-    private string DefaultTechTreeFilePath => $"{PluginFolderPath}{_s}Tech Tree{_s}DefaultTechTree.json";
-    private string DefaultGoalsFilePath => $"{PluginFolderPath}{_s}Goals{_s}DefaultGoals.json";
+    private static string DefaultTechTreeFilePath => $"{PluginFolderPathStatic}{_s}Tech Tree{_s}DefaultTechTree.json";
+    private static string DefaultGoalsFilePath => $"{PluginFolderPathStatic}{_s}Goals{_s}DefaultGoals.json";
     private static string _path;
     private static string _swPath;
 
@@ -243,9 +243,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     [HarmonyPrefix]
     private static bool SaveGameToFile(string filepath, SavedGameType savedGameType, bool saveOverwriteFileIfExists, OnLoadOrSaveCampaignFinishedCallback onLoadOrSaveCampaignFinishedCallback, SaveLoadManager __instance)
     {
-        _logger.LogInfo("Recording save game location: " + filepath);
         string modSavePath = filepath.Substring(filepath.LastIndexOf("Saves"));
-        _logger.LogInfo($"modSavePath: {modSavePath}");
         Save save = new();
         save.ModVersion = MyPluginInfo.PLUGIN_VERSION;
         save.TechPointBalance = _techPointBalance;
@@ -261,17 +259,38 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         situationOccurance.HighSpace = 0;
         situationOccurance.Orbit = 0;
 
-        save.SituationOccurances = new();
-        save.SituationOccurances.Add(situationOccurance);
+        save.SituationOccurances = new() { situationOccurance };
 
         var campaignName = Game.SaveLoadManager.ActiveCampaignFolderPath.Substring(Game.SaveLoadManager.ActiveCampaignFolderPath.LastIndexOf(_s) + 1);
         var fileName = filepath.Substring(filepath.LastIndexOf(_s) + 1);
-        _logger.LogInfo(campaignName);
         //if (!Directory.Exists($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{Game.SaveLoadManager.ActiveCampaignFolderPath}")) 
         Directory.CreateDirectory($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{campaignName}");
         var serializedJson = JsonConvert.SerializeObject(save);
         File.WriteAllText($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{campaignName}{_s}{fileName}", serializedJson);
 
+        return true;
+    }
+
+    [HarmonyPatch(typeof(SaveLoadManager), nameof(SaveLoadManager.LoadGameFromFile))]
+    [HarmonyPrefix]
+    private static bool LoadGameFromFile(string loadFileName, OnLoadOrSaveCampaignFinishedCallback onLoadOrSaveCampaignFinishedCallback, SaveLoadManager __instance)
+    {
+        if (!File.Exists(loadFileName)) return true;
+
+        var fileName = loadFileName.Substring(loadFileName.LastIndexOf(_s) + 1);
+        var campaignName = Game.SaveLoadManager.ActiveCampaignFolderPath.Substring(Game.SaveLoadManager.ActiveCampaignFolderPath.LastIndexOf(_s) + 1);
+
+        if (!File.Exists($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{campaignName}{_s}{fileName}"))
+        {
+            GenerateTechs();
+            return true;
+        }
+
+        _logger.LogInfo(fileName);
+        Save deserializedJson = JsonConvert.DeserializeObject<Save>(File.ReadAllText($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{campaignName}{_s}{fileName}"));
+        foreach (var pair in _techsObtained.ToList()) _techsObtained[pair.Key] = false;
+        foreach (var node in deserializedJson.UnlockedTechs) _techsObtained[node] = true;
+        _techPointBalance = deserializedJson.TechPointBalance;
 
         return true;
     }
@@ -488,14 +507,14 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     /// <summary>
     /// Finalizes the tech tree, reading all .json files in {PluginFolderPath}/Tech Tree and merges them. Any new parameters 
     /// </summary>
-    private void GenerateTechs()
+    private static void GenerateTechs()
     {
         // Loads DefaultTechTreeFilePath before any other json is loaded.
         // The current system for having duplicate nodes ignores everything except the parts list
         // of the dupe node, which is an issue if the node that declares all of the non-part data
         // is loaded as a duplicate node. Loading it in first fixes this issue.
         if (File.Exists(DefaultTechTreeFilePath)) Generate(DefaultTechTreeFilePath);
-        foreach (string file in Directory.GetFiles($"{PluginFolderPath}{_s}Tech Tree"))
+        foreach (string file in Directory.GetFiles($"{PluginFolderPathStatic}{_s}Tech Tree"))
         {
             if (file != DefaultTechTreeFilePath) Generate(file);
         }
@@ -504,7 +523,9 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         {
             _logger.LogInfo($"Found tech tree! {file}");
             _jsonFilePath = file;
-            var jsonString = File.ReadAllText(_jsonFilePath);
+            string jsonString;
+
+            jsonString = File.ReadAllText(_jsonFilePath);
             _jsonTechTree = JsonConvert.DeserializeObject<TechTree>(jsonString);
             foreach (var node in _jsonTechTree.Nodes)
             {
