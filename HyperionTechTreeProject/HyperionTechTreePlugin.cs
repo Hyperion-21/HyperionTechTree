@@ -50,6 +50,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static WindowTabs _windowTab = WindowTabs.TechTree;
 
     private const float ScienceSecondsOfDelay = 10;
+    private float _remainingTime = float.MaxValue;
     private enum CraftSituation
     {
         Landed,
@@ -161,6 +162,11 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
     private void Update()
     {
+        _remainingTime -= Time.deltaTime;
+        if (_remainingTime <= ScienceSecondsOfDelay) _logger.LogInfo(_remainingTime.ToString());
+
+        
+
         if (Game.GlobalGameState.GetState() != GameState.FlightView) return;
         var simVessel = Vehicle.ActiveSimVessel;
         var vesselVehicle = Vehicle.ActiveVesselVehicle;
@@ -168,48 +174,55 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         foreach (var body in _goals)
         {
             if (body.BodyName != simVessel.mainBody.bodyName) continue;
+
             if ((int)simVessel.Situation <= 2 && simVessel.Situation != KSP.Sim.impl.VesselSituations.Splashed)
             {
                 _craftSituation = CraftSituation.Landed;
                 awardAmount = body.LandedAward;
-                _logger.LogInfo("Craft is landed!");
+                //_logger.LogInfo("Craft is landed!");
             }
             else if (simVessel.Situation == KSP.Sim.impl.VesselSituations.Splashed)
             {
                 _craftSituation = CraftSituation.Splashed;
                 awardAmount = body.LandedAward;
-                _logger.LogInfo("Craft is splashed!");
+                //_logger.LogInfo("Craft is splashed!");
             }
             else if (simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel < body.AtmosphereThreshold && (int)simVessel.Situation > 2)
             {
                 _craftSituation = CraftSituation.LowAtmosphere;
                 awardAmount = body.LowAtmosphereAward;
-                _logger.LogInfo("Craft is flying in low atmosphere!");
+                //_logger.LogInfo("Craft is flying in low atmosphere!");
             }
             else if (simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel >= body.AtmosphereThreshold)
             {
                 _craftSituation = CraftSituation.HighAtmosphere;
                 awardAmount = body.HighAtmosphereAward;
-                _logger.LogInfo("Craft is flying in high atmosphere!");
+                //_logger.LogInfo("Craft is flying in high atmosphere!");
             }
             else if (!simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel < body.SpaceThreshold)
             {
                 _craftSituation = CraftSituation.LowSpace;
                 awardAmount = body.LowSpaceAward;
-                _logger.LogInfo("Craft is flying in low space!");
+                //_logger.LogInfo("Craft is flying in low space!");
             }
             else if (!simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel >= body.SpaceThreshold)
             {
                 _craftSituation = CraftSituation.HighSpace;
                 awardAmount = body.HighSpaceAward;
-                _logger.LogInfo("Craft is flying in high space!");
+                //_logger.LogInfo("Craft is flying in high space!");
             }
 
+            if (_remainingTime < 0)
+            {
+                _techPointBalance += awardAmount;
+                _logger.LogInfo($"Science successfully performed! Gained {awardAmount} tech points!");
+                _remainingTime = float.MaxValue;
+            }
 
             if (_craftSituation != _craftSituationOld)
             {
-                _techPointBalance += awardAmount;
-                _logger.LogInfo($"Changed craft situation! Awarding {awardAmount}");
+                _remainingTime = ScienceSecondsOfDelay;
+                _logger.LogInfo($"Craft changing states! Going from {_craftSituationOld} to {_craftSituation}! Maintain the current state for {ScienceSecondsOfDelay} to gain {awardAmount} tech points!");
                 _craftSituationOld = _craftSituation;
             }
         }
