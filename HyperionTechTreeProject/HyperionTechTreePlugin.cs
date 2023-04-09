@@ -15,6 +15,7 @@ using UnityEngine.UIElements;
 using KSP.Game;
 using KSP.Messages;
 using SpaceWarp.API.Game;
+using KSP.Sim;
 
 namespace HyperionTechTree;
 
@@ -31,7 +32,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     public const string ModGuid = MyPluginInfo.PLUGIN_GUID;
     public const string ModName = MyPluginInfo.PLUGIN_NAME;
     public const string ModVer = MyPluginInfo.PLUGIN_VERSION;
-    
+
     private bool _isWindowOpen;
     private Rect _windowRect = new(0, 0, _windowWidth, _windowHeight);
     private static float _windowHeight = 1;
@@ -86,6 +87,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     // and using \, \\, or {_s} there can cause crashes!
     // (because of course the difference between / and \ becomes relevant in this code)
     private static readonly char _s = Path.DirectorySeparatorChar;
+    private static string PluginFolderPathStatic;
     private string DefaultTechTreeFilePath => $"{PluginFolderPath}{_s}Tech Tree{_s}DefaultTechTree.json";
     private string DefaultGoalsFilePath => $"{PluginFolderPath}{_s}Goals{_s}DefaultGoals.json";
     private static string _path;
@@ -103,6 +105,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     {
         base.OnInitialized();
         _logger = Logger;
+        PluginFolderPathStatic = PluginFolderPath;
 
         // Completely disables the mod if Q and P are held down during startup
         if (Input.GetKey(KeyCode.Q) && Input.GetKey(KeyCode.P))
@@ -148,6 +151,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         );
 
         // Register all Harmony patches in the project
+        Harmony.CreateAndPatchAll(typeof(HyperionTechTreePlugin));
         Harmony.CreateAndPatchAll(typeof(HyperionTechTreePlugin).Assembly);
 
         GenerateTechs();
@@ -165,7 +169,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         _remainingTime -= Time.deltaTime;
         if (_remainingTime <= ScienceSecondsOfDelay) _logger.LogInfo(_remainingTime.ToString());
 
-        
+
 
         if (Game.GlobalGameState.GetState() != GameState.FlightView) return;
         var simVessel = Vehicle.ActiveSimVessel;
@@ -229,6 +233,54 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     }
 
     /// <summary>
+    /// Generates a save file from various things, and saves it in {Plugin Folder Path}/Saves/SinglePlayer/{Active Campaign Folder Path}/{Save File Name}.json
+    /// </summary>
+    /// <param name="filepath"></param>
+    /// <param name="savedGameType"></param>
+    /// <param name="saveOverwriteFileIfExists"></param>
+    /// <param name="onLoadOrSaveCampaignFinishedCallback"></param>
+    /// <param name="__instance"></param>
+    /// <returns></returns>
+    [HarmonyPatch(typeof(SaveLoadManager), nameof(SaveLoadManager.SaveGameToFile))]
+    [HarmonyPrefix]
+    private static bool SaveGameToFile(string filepath, SavedGameType savedGameType, bool saveOverwriteFileIfExists, OnLoadOrSaveCampaignFinishedCallback onLoadOrSaveCampaignFinishedCallback, SaveLoadManager __instance)
+    {
+        _logger.LogInfo("Recording save game location: " + filepath);
+        string modSavePath = filepath.Substring(filepath.LastIndexOf("Saves"));
+        _logger.LogInfo($"modSavePath: {modSavePath}");
+        Save save = new();
+        save.ModVersion = MyPluginInfo.PLUGIN_VERSION;
+        save.TechPointBalance = _techPointBalance;
+        save.UnlockedTechs = new();
+        foreach (var node in _techsObtained) if (node.Value) save.UnlockedTechs.Add(node.Key);
+
+        SituationOccurance situationOccurance = new SituationOccurance();
+        situationOccurance.BodyName = "Dummy Planet";
+        situationOccurance.Landed = 0;
+        situationOccurance.LowAtmosphere = 0;
+        situationOccurance.HighAtmosphere = 0;
+        situationOccurance.LowSpace = 0;
+        situationOccurance.HighSpace = 0;
+        situationOccurance.Orbit = 0;
+
+        save.SituationOccurances = new();
+        save.SituationOccurances.Add(situationOccurance);
+
+        var campaignName = Game.SaveLoadManager.ActiveCampaignFolderPath.Substring(Game.SaveLoadManager.ActiveCampaignFolderPath.LastIndexOf(_s) + 1);
+        var fileName = filepath.Substring(filepath.LastIndexOf(_s) + 1);
+        _logger.LogInfo(campaignName);
+        //if (!Directory.Exists($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{Game.SaveLoadManager.ActiveCampaignFolderPath}")) 
+        Directory.CreateDirectory($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{campaignName}");
+        var serializedJson = JsonConvert.SerializeObject(save);
+        File.WriteAllText($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{campaignName}{_s}{fileName}", serializedJson);
+
+
+        return true;
+    }
+
+
+
+    /// <summary>
     /// Draws a simple UI window when <code>this._isWindowOpen</code> is set to <code>true</code>.
     /// </summary>
     private void OnGUI()
@@ -243,12 +295,13 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             {
                 _windowWidth = _techTreex2 + 650;
                 _windowHeight = _techTreey2 + 100;
-            } else
+            }
+            else
             {
                 _windowWidth = 200;
                 _windowHeight = 200;
             }
-            
+
             _windowRect = GUILayout.Window(
                 GUIUtility.GetControlID(FocusType.Passive),
                 _windowRect,
@@ -339,7 +392,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             // GUILayout.Space(_techTreey2 + 10);
             if (_focusedNode != null)
             {
-
                 GUI.Label(new Rect(_techTreex2 + 10, _techTreey1, 600, 10000), $"Selected Node: {_focusedNode.NodeID}");
 
                 string requirementPrefix;
@@ -458,7 +510,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             _jsonTechTree = JsonConvert.DeserializeObject<TechTree>(jsonString);
             foreach (var node in _jsonTechTree.Nodes)
             {
-                
+
                 if (_techTreeNodes.Exists(x => x.NodeID == node.NodeID))
                 {
                     _logger.LogInfo($"Found multiple nodes with ID {node.NodeID}! Attempting merge.");
@@ -557,6 +609,28 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         [JsonProperty("highAtmosphereAward")] public float HighAtmosphereAward { get; set; }
         [JsonProperty("lowAtmosphereAward")] public float LowAtmosphereAward { get; set; }
         [JsonProperty("landedAward")] public float LandedAward { get; set; }
+    }
+
+    [JsonObject(MemberSerialization.OptIn)]
+    private class Save
+    {
+        [JsonProperty("modVersion")] public string ModVersion { get; set; }
+        [JsonProperty("techPointBalance")] public float TechPointBalance { get; set; }
+        [JsonProperty("unlockedTechs")] public List<string> UnlockedTechs { get; set; }
+        [JsonProperty("situationOccurances")] public List<SituationOccurance> SituationOccurances { get; set; }
+
+
+    }
+
+    private class SituationOccurance
+    {
+        [JsonProperty("bodyName")] public string BodyName { get; set; }
+        [JsonProperty("landed")] public int Landed { get; set; }
+        [JsonProperty("lowAtmosphere")] public int LowAtmosphere { get; set; }
+        [JsonProperty("highAtmosphere")] public int HighAtmosphere { get; set; }
+        [JsonProperty("lowSpace")] public int LowSpace { get; set; }
+        [JsonProperty("highSpace")] public int HighSpace { get; set; }
+        [JsonProperty("orbit")] public int Orbit { get; set; }
     }
 
     // Parts of the next two methods are copy-pasted from VChristof's InteractiveFilter mod

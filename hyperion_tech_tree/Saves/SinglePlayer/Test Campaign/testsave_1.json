@@ -1,0 +1,18 @@
+{
+    "modVersion": "0.0.1",
+    "techPointBalance": 0,
+    "unlockedTechs": [
+        "Start"
+    ],
+    "situationOccurances": [
+        {
+            "bodyName": "Kerbin",
+            "landed": 0,
+            "lowAtmosphere": 0,
+            "highAtmosphere": 0,
+            "lowSpace": 0,
+            "highSpace": 0,
+            "orbit": 0
+        }
+    ]
+}
