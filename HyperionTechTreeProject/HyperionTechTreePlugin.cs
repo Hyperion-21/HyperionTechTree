@@ -171,6 +171,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         foreach (var goal in _goals)
         {
+            _logger.LogInfo("Found planet " + goal.BodyName);
             _situationOccurances.Add(goal.BodyName, new()
             {
                 { CraftSituation.Landed, 0 },
@@ -289,15 +290,19 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         foreach (var node in _techsObtained) if (node.Value) save.UnlockedTechs.Add(node.Key);
 
         SituationOccurance situationOccurance = new SituationOccurance();
-        situationOccurance.BodyName = "Dummy Planet";
-        situationOccurance.Landed = 0;
-        situationOccurance.LowAtmosphere = 0;
-        situationOccurance.HighAtmosphere = 0;
-        situationOccurance.LowSpace = 0;
-        situationOccurance.HighSpace = 0;
-        situationOccurance.Orbit = 0;
+        save.SituationOccurances = new();
 
-        save.SituationOccurances = new() { situationOccurance };
+        foreach (var body in _goals)
+        {
+            situationOccurance.BodyName = body.BodyName;
+            situationOccurance.Landed = _situationOccurances[body.BodyName][CraftSituation.Landed];
+            situationOccurance.LowAtmosphere = _situationOccurances[body.BodyName][CraftSituation.LowAtmosphere];
+            situationOccurance.HighAtmosphere = _situationOccurances[body.BodyName][CraftSituation.HighAtmosphere];
+            situationOccurance.LowSpace = _situationOccurances[body.BodyName][CraftSituation.LowSpace];
+            situationOccurance.HighSpace = _situationOccurances[body.BodyName][CraftSituation.HighSpace];
+            situationOccurance.Orbit = _situationOccurances[body.BodyName][CraftSituation.Orbit];
+            save.SituationOccurances.Add(situationOccurance);
+        }
 
         var campaignName = Game.SaveLoadManager.ActiveCampaignFolderPath.Substring(Game.SaveLoadManager.ActiveCampaignFolderPath.LastIndexOf(_s) + 1);
         var fileName = filepath.Substring(filepath.LastIndexOf(_s) + 1);
