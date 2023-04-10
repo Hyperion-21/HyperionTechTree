@@ -15,6 +15,7 @@ using KSP.Game;
 using SpaceWarp.API.Game;
 using KSP.Sim;
 using RTG;
+using KSP.Sim.impl;
 
 namespace HyperionTechTree;
 
@@ -54,17 +55,25 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private const float ScienceSecondsOfDelay = 10;
     private static float _remainingTime = float.MaxValue;
     private static float _awardAmount = 0;
+
     private enum CraftSituation
     {
         Landed,
-        Splashed,
         LowAtmosphere,
         HighAtmosphere,
         LowSpace,
-        HighSpace
+        HighSpace,
+        Orbit
     }
+    
+    private static bool _isCraftOrbiting = false;
+    // _craftSituation is never set to Orbit, use _isCraftOrbiting instead. That enum value is there for tracking situation occurances.
     private static CraftSituation _craftSituation = CraftSituation.Landed;
     private static CraftSituation _craftSituationOld = CraftSituation.Landed;
+
+    private static Dictionary<string, Dictionary<CraftSituation, int>> _situationOccurances = new();
+
+    private static Texture2D _tex = new(1, 1);
 
     private const string ToolbarFlightButtonID = "BTN-HyperionTechTreeFlight";
     private const string ToolbarOABButtonID = "BTN-HyperionTechTreeOAB";
@@ -92,6 +101,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static string PluginFolderPathStatic;
     private static string DefaultTechTreeFilePath => $"{PluginFolderPathStatic}{_s}Tech Tree{_s}DefaultTechTree.json";
     private static string DefaultGoalsFilePath => $"{PluginFolderPathStatic}{_s}Goals{_s}DefaultGoals.json";
+    private string _UTdisplay;
     private static string _path;
     private static string _swPath;
 
@@ -161,9 +171,18 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         foreach (var goal in _goals)
         {
-            _logger.LogInfo($"Body Name: {goal.BodyName}");
-            _logger.LogInfo($"Atmosphere Threshold: {goal.AtmosphereThreshold}");
+            _situationOccurances.Add(goal.BodyName, new()
+            {
+                { CraftSituation.Landed, 0 },
+                { CraftSituation.LowAtmosphere, 0 },
+                { CraftSituation.HighAtmosphere, 0 },
+                { CraftSituation.LowSpace, 0 },
+                { CraftSituation.HighSpace, 0 },
+                { CraftSituation.Orbit, 0 },
+            });
         }
+
+
     }
 
     private void Update()
@@ -171,28 +190,31 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         _remainingTime -= Time.deltaTime;
         if (_remainingTime <= ScienceSecondsOfDelay) _logger.LogInfo(_remainingTime.ToString());
 
+        if (Game?.GlobalGameState?.GetState() != GameState.FlightView) return;
+        _logger.LogInfo(GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime));
 
-
-        if (Game.GlobalGameState.GetState() != GameState.FlightView) return;
-        var simVessel = Vehicle.ActiveSimVessel;
-        var vesselVehicle = Vehicle.ActiveVesselVehicle;
+#nullable enable
+        VesselComponent? simVessel = Vehicle.ActiveSimVessel;
+        VesselVehicle? vesselVehicle = Vehicle.ActiveVesselVehicle;
+        if (simVessel == null || vesselVehicle == null) return;
+#nullable disable
         _awardAmount = 0;
         foreach (var body in _goals)
         {
             if (body.BodyName != simVessel.mainBody.bodyName) continue;
 
-            if ((int)simVessel.Situation <= 2 && simVessel.Situation != KSP.Sim.impl.VesselSituations.Splashed)
+            if ((int)simVessel.Situation <= 2)
             {
                 _craftSituation = CraftSituation.Landed;
                 _awardAmount = body.LandedAward;
                 //_logger.LogInfo("Craft is landed!");
             }
-            else if (simVessel.Situation == KSP.Sim.impl.VesselSituations.Splashed)
-            {
-                _craftSituation = CraftSituation.Splashed;
-                _awardAmount = body.LandedAward;
-                //_logger.LogInfo("Craft is splashed!");
-            }
+            //else if (simVessel.Situation == KSP.Sim.impl.VesselSituations.Splashed)
+            //{
+            //    _craftSituation = CraftSituation.Splashed;
+            //    _awardAmount = body.LandedAward;
+            //    //_logger.LogInfo("Craft is splashed!");
+            //}
             else if (simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel < body.AtmosphereThreshold && (int)simVessel.Situation > 2)
             {
                 _craftSituation = CraftSituation.LowAtmosphere;
@@ -222,7 +244,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             {
                 _techPointBalance += _awardAmount;
                 _logger.LogInfo($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] Science complete! Gained {_awardAmount} tech points!");
-                _sciradLog.Add($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] Science complete! Gained {_awardAmount} tech points!");
+                _sciradLog.Add($"<color=#00ffff>[{GameManager.Instance.Game.UniverseModel.UniversalTime}] Science complete! Gained {_awardAmount} tech points!</color>");
+                _situationOccurances[simVessel.mainBody.bodyName][_craftSituation]++; 
                 _remainingTime = float.MaxValue;
             }
 
@@ -231,8 +254,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 
                 if (_remainingTime < 10)
                 {
-                    _logger.LogInfo($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] Previous science interrupted! Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
-                    _sciradLog.Add($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] <color=#ff0000>Previous science interrupted!</color> Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                    _logger.LogInfo($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] Previous science interrupted! Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                    _sciradLog.Add($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] <color=#ff0000>Previous science interrupted!</color> Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                 } 
                 else
                 {
@@ -369,10 +392,22 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         GUI.backgroundColor = Color.red;
         if (GUI.Button(new Rect(_windowWidth - 10, 10, 20, 20), "X")) _isWindowOpen = false;
 
-        if (_windowTab == WindowTabs.TechTree)
+        switch (_windowTab)
         {
-            
-
+            case WindowTabs.TechTree:
+                DrawTechTreeWindow();
+                break;
+            case WindowTabs.Goals:
+                DrawGoalsWindow();
+                break;
+            default:
+                GUI.Label(new Rect(150, 150, 150, 150), "ERROR: Couldn't find tab!");
+                _logger.LogError("Tried to open illegal tab!");
+                break;
+        }
+        
+        void DrawTechTreeWindow()
+        {
             GUILayout.BeginHorizontal();
             GUILayout.Space(_techTreex2 + 10);
             //GUILayout.Label("Test label");
@@ -509,7 +544,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                         }
                         GUI.backgroundColor = defaultColor;
                     }
-                    
+
                 }
             }
             else
@@ -519,7 +554,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
         }
-        else if (_windowTab == WindowTabs.Goals)
+        
+        void DrawGoalsWindow()
         {
             GUI.backgroundColor = defaultColor;
             GUILayout.BeginHorizontal();
@@ -548,19 +584,25 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             GUILayout.EndVertical();
             GUILayout.BeginVertical();
             GUILayout.Space(-_windowHeight);
-            GUILayout.Button("Dummy Button 1", GUILayout.Width(200));
-            GUILayout.Button("Dummy Button 2", GUILayout.Width(200));
-            GUILayout.Button("Dummy Button 3", GUILayout.Width(200));
+            foreach (var goal in _goals)
+            {
+                GUILayout.Button(goal.BodyName, GUILayout.Width(200));
+                GUILayout.Label($"Landed: {_situationOccurances[goal.BodyName][CraftSituation.Landed]}");
+                GUILayout.Label($"Low Atmosphere: {_situationOccurances[goal.BodyName][CraftSituation.LowAtmosphere]}");
+                GUILayout.Label($"High Atmosphere: {_situationOccurances[goal.BodyName][CraftSituation.HighAtmosphere]}");
+                GUILayout.Label($"Low Space: {_situationOccurances[goal.BodyName][CraftSituation.LowSpace]}");
+                GUILayout.Label($"High Space: {_situationOccurances[goal.BodyName][CraftSituation.HighSpace]}");
+                GUILayout.Label($"Orbit: {_situationOccurances[goal.BodyName][CraftSituation.Orbit]}");
+            }
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
-
         }
 
         GUI.DragWindow(new Rect(0, 0, 10000, 10000));
     }
 
     /// <summary>
-    /// A json reader class made by Hyperion_21. Construct using a file path to the target .json file.
+    /// A json reader method. Construct using a file path to the target .json file.
     /// </summary>
     /// <param name="jsonFilePath"></param>
     private void CreateJsonReader(string jsonFilePath)
@@ -776,17 +818,41 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         GUIUtility.RotateAroundPivot((float)-((Math.Atan(opposite / adjacent) * (180 / Math.PI)) + 180), new Vector2((float)x1, (float)y1));
     }
 
+    /// <summary>
+    /// Generates a 1x1 texture with a specified color
+    /// </summary>
+    /// <param name="color"></param>
+    /// <returns></returns>
     private static Texture2D GetTextureFromColor(Color color)
     {
-        Texture2D tex = new(1, 1);
-        //for (int i = 0; i < 50; i++)
-        //{
-        //    for (int j = 0; j < 50; j++)
-        //    {
-        tex.SetPixel(1, 1, color);
-        //    }
-        //}
-        tex.Apply();
-        return tex;
+        _tex.SetPixel(1, 1, color);
+        _tex.Apply();
+        return _tex;
+    }
+
+    private static string GetHumanReadableUT(double? nullableUT)
+    {
+        if (nullableUT.HasValue)
+        {
+            var ut = nullableUT.Value;
+            var seconds = Math.Floor(ut % 60).ToString();
+            var minutes = Math.Floor(ut / 60 % 60).ToString();
+            var hours = Math.Floor(ut / (60 * 60) % 6).ToString();
+            var days = Math.Floor(ut / (60 * 60 * 6) % 425).ToString();
+            var years = Math.Floor(ut / (60 * 60 * 6 * 425)).ToString();
+
+            if (seconds.Length == 1) seconds = "0" + seconds;
+            if (minutes.Length == 1) minutes = "0" + minutes;
+            hours = "0" + hours;
+            if (days.Length == 1) days = "00" + days;
+            else if (days.Length == 2) days = "0" + days;
+
+            return $"{years}y, {days}d, {hours}:{minutes}:{seconds}";
+        }
+        else
+        {
+            return "invalid";
+        }
+        
     }
 }
