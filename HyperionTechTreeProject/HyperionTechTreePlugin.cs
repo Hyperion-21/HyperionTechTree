@@ -14,6 +14,7 @@ using I2.Loc;
 using KSP.Game;
 using SpaceWarp.API.Game;
 using KSP.Sim;
+using RTG;
 
 namespace HyperionTechTree;
 
@@ -41,6 +42,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static float _techTreex2 = -10000;
     private static float _techTreey1 = 10000;
     private static float _techTreey2 = -10000;
+    private static Vector2 _scrollbarPos = Vector2.zero;
+    private static List<string> _sciradLog = new();
     private enum WindowTabs
     {
         TechTree,
@@ -49,7 +52,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static WindowTabs _windowTab = WindowTabs.TechTree;
 
     private const float ScienceSecondsOfDelay = 10;
-    private float _remainingTime = float.MaxValue;
+    private static float _remainingTime = float.MaxValue;
+    private static float _awardAmount = 0;
     private enum CraftSituation
     {
         Landed,
@@ -172,7 +176,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         if (Game.GlobalGameState.GetState() != GameState.FlightView) return;
         var simVessel = Vehicle.ActiveSimVessel;
         var vesselVehicle = Vehicle.ActiveVesselVehicle;
-        float awardAmount = 0;
+        _awardAmount = 0;
         foreach (var body in _goals)
         {
             if (body.BodyName != simVessel.mainBody.bodyName) continue;
@@ -180,51 +184,62 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             if ((int)simVessel.Situation <= 2 && simVessel.Situation != KSP.Sim.impl.VesselSituations.Splashed)
             {
                 _craftSituation = CraftSituation.Landed;
-                awardAmount = body.LandedAward;
+                _awardAmount = body.LandedAward;
                 //_logger.LogInfo("Craft is landed!");
             }
             else if (simVessel.Situation == KSP.Sim.impl.VesselSituations.Splashed)
             {
                 _craftSituation = CraftSituation.Splashed;
-                awardAmount = body.LandedAward;
+                _awardAmount = body.LandedAward;
                 //_logger.LogInfo("Craft is splashed!");
             }
             else if (simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel < body.AtmosphereThreshold && (int)simVessel.Situation > 2)
             {
                 _craftSituation = CraftSituation.LowAtmosphere;
-                awardAmount = body.LowAtmosphereAward;
+                _awardAmount = body.LowAtmosphereAward;
                 //_logger.LogInfo("Craft is flying in low atmosphere!");
             }
             else if (simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel >= body.AtmosphereThreshold)
             {
                 _craftSituation = CraftSituation.HighAtmosphere;
-                awardAmount = body.HighAtmosphereAward;
+                _awardAmount = body.HighAtmosphereAward;
                 //_logger.LogInfo("Craft is flying in high atmosphere!");
             }
             else if (!simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel < body.SpaceThreshold)
             {
                 _craftSituation = CraftSituation.LowSpace;
-                awardAmount = body.LowSpaceAward;
+                _awardAmount = body.LowSpaceAward;
                 //_logger.LogInfo("Craft is flying in low space!");
             }
             else if (!simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel >= body.SpaceThreshold)
             {
                 _craftSituation = CraftSituation.HighSpace;
-                awardAmount = body.HighSpaceAward;
+                _awardAmount = body.HighSpaceAward;
                 //_logger.LogInfo("Craft is flying in high space!");
             }
 
             if (_remainingTime < 0)
             {
-                _techPointBalance += awardAmount;
-                _logger.LogInfo($"Science successfully performed! Gained {awardAmount} tech points!");
+                _techPointBalance += _awardAmount;
+                _logger.LogInfo($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] Science complete! Gained {_awardAmount} tech points!");
+                _sciradLog.Add($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] Science complete! Gained {_awardAmount} tech points!");
                 _remainingTime = float.MaxValue;
             }
 
             if (_craftSituation != _craftSituationOld)
             {
+                
+                if (_remainingTime < 10)
+                {
+                    _logger.LogInfo($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] Previous science interrupted! Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                    _sciradLog.Add($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] <color=#ff0000>Previous science interrupted!</color> Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                } 
+                else
+                {
+                    _logger.LogInfo($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                    _sciradLog.Add($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                }
                 _remainingTime = ScienceSecondsOfDelay;
-                _logger.LogInfo($"Craft changing states! Going from {_craftSituationOld} to {_craftSituation}! Maintain the current state for {ScienceSecondsOfDelay} to gain {awardAmount} tech points!");
                 _craftSituationOld = _craftSituation;
             }
         }
@@ -315,8 +330,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             }
             else
             {
-                _windowWidth = 200;
-                _windowHeight = 200;
+                _windowWidth = 560;
+                _windowHeight = 575;
             }
 
             _windowRect = GUILayout.Window(
@@ -506,7 +521,39 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         }
         else if (_windowTab == WindowTabs.Goals)
         {
-            GUILayout.Label("Heyo");
+            GUI.backgroundColor = defaultColor;
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(130);
+            GUILayout.BeginVertical();
+            GUILayout.Space(-_windowHeight);
+            _scrollbarPos = GUILayout.BeginScrollView(_scrollbarPos, false, false, GUILayout.Width(200), GUILayout.Height(500));
+            foreach (var log in _sciradLog)
+            {
+                GUILayout.Label(log);
+            }
+            GUILayout.EndScrollView();
+            GUI.DrawTexture(new Rect(140, 562, 410, 5), GetTextureFromColor(new Color(0f, 0f, 0f, 1f)));
+            if (_remainingTime < 10 && _remainingTime > 0)
+            {
+                var roundedTime = Math.Round(_remainingTime, 1).ToString();
+                if (roundedTime.Length == 1) roundedTime += ".0";
+
+                GUI.Label(new Rect(149, 535, 400, 40), $"{roundedTime}s Remaining | {_awardAmount} Tech Points");
+                GUI.DrawTexture(new Rect(140, 562, 410 - (41 * _remainingTime), 5), GetTextureFromColor(new Color(1f, 1f, 1f, 1f)));
+            }
+            else
+            {
+                GUI.Label(new Rect(149, 535, 400, 40), "Not currently doing science.");
+            }
+            GUILayout.EndVertical();
+            GUILayout.BeginVertical();
+            GUILayout.Space(-_windowHeight);
+            GUILayout.Button("Dummy Button 1", GUILayout.Width(200));
+            GUILayout.Button("Dummy Button 2", GUILayout.Width(200));
+            GUILayout.Button("Dummy Button 3", GUILayout.Width(200));
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+
         }
 
         GUI.DragWindow(new Rect(0, 0, 10000, 10000));
@@ -727,5 +774,19 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         GUIUtility.RotateAroundPivot((float)((Math.Atan(opposite / adjacent) * (180 / Math.PI)) + 180), new Vector2((float)x1, (float)y1));
         GUI.DrawTexture(new Rect((float)x1, (float)y1, (float)length, LineWidth), Texture2D.whiteTexture);
         GUIUtility.RotateAroundPivot((float)-((Math.Atan(opposite / adjacent) * (180 / Math.PI)) + 180), new Vector2((float)x1, (float)y1));
+    }
+
+    private static Texture2D GetTextureFromColor(Color color)
+    {
+        Texture2D tex = new(1, 1);
+        //for (int i = 0; i < 50; i++)
+        //{
+        //    for (int j = 0; j < 50; j++)
+        //    {
+        tex.SetPixel(1, 1, color);
+        //    }
+        //}
+        tex.Apply();
+        return tex;
     }
 }
