@@ -71,6 +71,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static CraftSituation _craftSituationOld = CraftSituation.Landed;
 
     private static Dictionary<string, Dictionary<CraftSituation, int>> _situationOccurances = new();
+    //private static Dictionary<string, List<string>> _kerbalLicenses, _probeLicenses = new();
+    private static Dictionary<string, List<string>> _scienceLicenses = new();
 
     private static Texture2D _tex = new(1, 1);
 
@@ -191,11 +193,49 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         if (Game?.GlobalGameState?.GetState() != GameState.FlightView) return;
 
+        
+
 #nullable enable
         VesselComponent? simVessel = Vehicle.ActiveSimVessel;
         VesselVehicle? vesselVehicle = Vehicle.ActiveVesselVehicle;
         if (simVessel == null || vesselVehicle == null) return;
 #nullable disable
+
+        
+        foreach (var part in simVessel.GetControlOwner()._partOwner._parts.PartsEnumerable)
+        {
+            PartComponentModule_Command module = new();
+            if (part.TryGetModule<PartComponentModule_Command>(out module))
+            {
+                List<KerbalInfo> kerfo = Game.KerbalManager._kerbalRosterManager.GetAllKerbalsInSimObject(part.GlobalId);
+                //if (kerfo == null) continue;
+                foreach (var kerbal in kerfo)
+                {
+                    _logger.LogInfo("Kerbal ID: " + kerbal.Id.ToString());
+                    _scienceLicenses.Add(kerbal.Id.ToString(), new());
+                }
+                if (kerfo.Count < 1) {
+                    _logger.LogInfo("Probe ID: " + part.GlobalId.ToString());
+                    _scienceLicenses.Add(part.GlobalId.ToString(), new());
+                }
+            }
+        }
+
+        //simVessel.GetControlOwner()._partOwner._parts.PartsEnumerable
+        //GetComponentInChildren<CrewMemberComponent>(true);
+
+        _logger.LogInfo("" + Game.PartsManager.PartsList.ToString());
+
+        //foreach (var crew in simVessel.GetVesselCrew())
+        //{
+            
+        //    _logger.LogInfo($"Crew.Name: {crew.Name}");
+        //    _logger.LogInfo($"Crew.DisplayName: {crew.DisplayName}");
+        //    _logger.LogInfo($"Crew.Guid: {crew.Guid}");
+        //    _logger.LogInfo($"Crew.GetState: {crew.GetState()}");
+        //    _logger.LogInfo($"Crew.GetType: {crew.GetType()}");
+        //    _logger.LogInfo($"Crew.GlobalId: {crew.GlobalId}");
+        //}
         _awardAmount = 0;
         foreach (var body in _goals)
         {
