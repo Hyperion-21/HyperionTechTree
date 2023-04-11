@@ -14,7 +14,6 @@ using I2.Loc;
 using KSP.Game;
 using SpaceWarp.API.Game;
 using KSP.Sim;
-using RTG;
 using KSP.Sim.impl;
 
 namespace HyperionTechTree;
@@ -189,10 +188,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private void Update()
     {
         _remainingTime -= Time.deltaTime;
-        if (_remainingTime <= ScienceSecondsOfDelay) _logger.LogInfo(_remainingTime.ToString());
 
         if (Game?.GlobalGameState?.GetState() != GameState.FlightView) return;
-        _logger.LogInfo(GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime));
 
 #nullable enable
         VesselComponent? simVessel = Vehicle.ActiveSimVessel;
@@ -207,7 +204,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             if ((int)simVessel.Situation <= 2)
             {
                 _craftSituation = CraftSituation.Landed;
-                _awardAmount = body.LandedAward;
+                _awardAmount = (float)(body.LandedAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.Landed]));
                 //_logger.LogInfo("Craft is landed!");
             }
             //else if (simVessel.Situation == KSP.Sim.impl.VesselSituations.Splashed)
@@ -219,33 +216,33 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             else if (simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel < body.AtmosphereThreshold && (int)simVessel.Situation > 2)
             {
                 _craftSituation = CraftSituation.LowAtmosphere;
-                _awardAmount = body.LowAtmosphereAward;
+                _awardAmount = (float)(body.LowAtmosphereAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.LowAtmosphere]));
                 //_logger.LogInfo("Craft is flying in low atmosphere!");
             }
             else if (simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel >= body.AtmosphereThreshold)
             {
                 _craftSituation = CraftSituation.HighAtmosphere;
-                _awardAmount = body.HighAtmosphereAward;
+                _awardAmount = (float)(body.HighAtmosphereAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.HighAtmosphere]));
                 //_logger.LogInfo("Craft is flying in high atmosphere!");
             }
             else if (!simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel < body.SpaceThreshold)
             {
                 _craftSituation = CraftSituation.LowSpace;
-                _awardAmount = body.LowSpaceAward;
+                _awardAmount = (float)(body.LowSpaceAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.LowSpace]));
                 //_logger.LogInfo("Craft is flying in low space!");
             }
             else if (!simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel >= body.SpaceThreshold)
             {
                 _craftSituation = CraftSituation.HighSpace;
-                _awardAmount = body.HighSpaceAward;
+                _awardAmount = (float)(body.HighSpaceAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.HighSpace]));
                 //_logger.LogInfo("Craft is flying in high space!");
             }
 
             if (_remainingTime < 0)
             {
                 _techPointBalance += _awardAmount;
-                _logger.LogInfo($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] Science complete! Gained {_awardAmount} tech points!");
-                _sciradLog.Add($"<color=#00ffff>[{GameManager.Instance.Game.UniverseModel.UniversalTime}] Science complete! Gained {_awardAmount} tech points!</color>");
+                _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Science complete! Gained {_awardAmount} tech points!");
+                _sciradLog.Add($"<color=#00ffff>[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Science complete! Gained {_awardAmount} tech points!</color>");
                 _situationOccurances[simVessel.mainBody.bodyName][_craftSituation]++; 
                 _remainingTime = float.MaxValue;
             }
@@ -255,13 +252,13 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 
                 if (_remainingTime < 10)
                 {
-                    _logger.LogInfo($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] Previous science interrupted! Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
-                    _sciradLog.Add($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] <color=#ff0000>Previous science interrupted!</color> Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                    _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Previous science interrupted! Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                    _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] <color=#ff0000>Previous science interrupted!</color> Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                 } 
                 else
                 {
-                    _logger.LogInfo($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
-                    _sciradLog.Add($"[{GameManager.Instance.Game.UniverseModel.UniversalTime}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                    _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                    _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                 }
                 _remainingTime = ScienceSecondsOfDelay;
                 _craftSituationOld = _craftSituation;
@@ -289,11 +286,11 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         save.UnlockedTechs = new();
         foreach (var node in _techsObtained) if (node.Value) save.UnlockedTechs.Add(node.Key);
 
-        SituationOccurance situationOccurance = new SituationOccurance();
         save.SituationOccurances = new();
 
         foreach (var body in _goals)
         {
+            SituationOccurance situationOccurance = new();
             situationOccurance.BodyName = body.BodyName;
             situationOccurance.Landed = _situationOccurances[body.BodyName][CraftSituation.Landed];
             situationOccurance.LowAtmosphere = _situationOccurances[body.BodyName][CraftSituation.LowAtmosphere];
@@ -302,6 +299,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             situationOccurance.HighSpace = _situationOccurances[body.BodyName][CraftSituation.HighSpace];
             situationOccurance.Orbit = _situationOccurances[body.BodyName][CraftSituation.Orbit];
             save.SituationOccurances.Add(situationOccurance);
+
         }
 
         var campaignName = Game.SaveLoadManager.ActiveCampaignFolderPath.Substring(Game.SaveLoadManager.ActiveCampaignFolderPath.LastIndexOf(_s) + 1);
@@ -333,6 +331,16 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         Save deserializedJson = JsonConvert.DeserializeObject<Save>(File.ReadAllText($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{campaignName}{_s}{fileName}"));
         foreach (var pair in _techsObtained.ToList()) _techsObtained[pair.Key] = false;
         foreach (var node in deserializedJson.UnlockedTechs) _techsObtained[node] = true;
+        foreach (var situationOccurance in deserializedJson.SituationOccurances)
+        {
+            _situationOccurances[situationOccurance.BodyName][CraftSituation.Landed] = situationOccurance.Landed;
+            _situationOccurances[situationOccurance.BodyName][CraftSituation.LowAtmosphere] = situationOccurance.LowAtmosphere;
+            _situationOccurances[situationOccurance.BodyName][CraftSituation.HighAtmosphere] = situationOccurance.HighAtmosphere;
+            _situationOccurances[situationOccurance.BodyName][CraftSituation.LowSpace] = situationOccurance.LowSpace;
+            _situationOccurances[situationOccurance.BodyName][CraftSituation.HighSpace] = situationOccurance.HighSpace;
+            _situationOccurances[situationOccurance.BodyName][CraftSituation.Orbit] = situationOccurance.Orbit;
+
+        }
         _techPointBalance = deserializedJson.TechPointBalance;
 
         return true;
@@ -689,6 +697,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                     continue;
                 }
                 _goals.Add(goal);
+
+
             }
             if (_jsonGoals.ModVersion != MyPluginInfo.PLUGIN_VERSION)
             {
