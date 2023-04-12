@@ -1,0 +1,33 @@
+{
+    "modVersion": "0.0.1",
+    "crewed": [
+        "cockpit_1v_m1_crew",
+        "cockpit_1v_m1_inline_crew",
+        "cockpit_2v_m2_crew",
+        "cockpit_2v_m2_inline_crew",
+        "cockpit_3v_m3_crew",
+        "cockpit_3v_truck_crew",
+        "pod_1v_conical_crew",
+        "pod_1v_lander_crew",
+        "pod_2v_conical_crew",
+        "pod_2v_cupola_crew",
+        "pod_2v_lander_crew",
+        "pod_3v_conical_crew",
+        "pod_3v_lander_crew",
+        "seat_0v_external_crew"
+    ],
+    "uncrewed": [
+        "probe_0v_hexagonal_electricity",
+        "probe_0v_octagonal_electricity_1x1",
+        "probe_0v_octagonal_electricity_1x3",
+        "probe_0v_rectangular_electricity",
+        "probe_0v_spherical_electricity",
+        "probe_1v_disk_electricity",
+        "probe_1v_hexagonal_electricity",
+        "probe_1v_rover_electricity",
+        "probe_2v_disk_electricity",
+        "probe_2v_m2_electricity",
+        "probe_3v_disk_electricity",
+        "probe_4v_disk_electricity"
+    ]
+}

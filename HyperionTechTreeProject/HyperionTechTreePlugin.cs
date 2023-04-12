@@ -71,8 +71,9 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static CraftSituation _craftSituationOld = CraftSituation.Landed;
 
     private static Dictionary<string, Dictionary<CraftSituation, int>> _situationOccurances = new();
-    //private static Dictionary<string, List<string>> _kerbalLicenses, _probeLicenses = new();
-    private static Dictionary<string, List<string>> _scienceLicenses = new();
+    private static Dictionary<string, Dictionary<string, List<CraftSituation>>> _probeLicenses = new();
+    private static Dictionary<string, Dictionary<string, List<CraftSituation>>> _kerbalLicenses = new();
+    //private static Dictionary<string, List<string>> _scienceLicenses = new();
 
     private static Texture2D _tex = new(1, 1);
 
@@ -86,6 +87,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static Dictionary<string, bool> _techsObtained = new();
     private static List<TechTreeNode> _techTreeNodes = new();
     private static List<GoalsBody> _goals = new();
+    private static List<string> _ppdCrewed, _ppdUncrewed = new();
+
     private static float _techPointBalance = 100000;
 
     private static TechTreeNode _focusedNode = null;
@@ -184,6 +187,9 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             });
         }
 
+        var ppd = JsonConvert.DeserializeObject<PodProbeDistinction>(File.ReadAllText($"{PluginFolderPath}{_s}PodProbeDistinction{_s}DefaultPodProbeDistinction.json"));
+        _ppdCrewed = ppd.Crewed;
+        _ppdUncrewed = ppd.Uncrewed;
 
     }
 
@@ -201,41 +207,51 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         if (simVessel == null || vesselVehicle == null) return;
 #nullable disable
 
-        
+        PartComponentModule_Command module = new();
+        List<KerbalInfo> kerfo;
+
         foreach (var part in simVessel.GetControlOwner()._partOwner._parts.PartsEnumerable)
         {
-            PartComponentModule_Command module = new();
+            
             if (part.TryGetModule<PartComponentModule_Command>(out module))
             {
-                List<KerbalInfo> kerfo = Game.KerbalManager._kerbalRosterManager.GetAllKerbalsInSimObject(part.GlobalId);
+                kerfo = Game.KerbalManager._kerbalRosterManager.GetAllKerbalsInSimObject(part.GlobalId);
                 //if (kerfo == null) continue;
-                foreach (var kerbal in kerfo)
-                {
-                    _logger.LogInfo("Kerbal ID: " + kerbal.Id.ToString());
-                    _scienceLicenses.Add(kerbal.Id.ToString(), new());
-                }
-                if (kerfo.Count < 1) {
+                foreach (var kerbal in kerfo) 
+                    if (!_kerbalLicenses.ContainsKey(kerbal.Id.ToString()))
+                    {
+                        InstantiateController(kerbal.Id.ToString(), true);
+                        //_kerbalLicenses.Add(kerbal.Id.ToString(), new());
+                    }
+                
+                if (kerfo.Count < 1 && _ppdUncrewed.Contains(part.PartName)) {
                     _logger.LogInfo("Probe ID: " + part.GlobalId.ToString());
-                    _scienceLicenses.Add(part.GlobalId.ToString(), new());
+                    if (!_probeLicenses.ContainsKey(part.GlobalId.ToString()))
+                    {
+                        InstantiateController(part.GlobalId.ToString(), false);
+                        //_probeLicenses.Add(part.GlobalId.ToString(), new());
+                    }
                 }
             }
         }
 
-        //simVessel.GetControlOwner()._partOwner._parts.PartsEnumerable
-        //GetComponentInChildren<CrewMemberComponent>(true);
+        _logger.LogInfo(_kerbalLicenses.Count);
+        foreach (var license in _kerbalLicenses)
+        {
+            _logger.LogInfo(license.Value.Count);
+            foreach (var situation in license.Value)
+            {
+                _logger.LogInfo($"{license.Key}, {situation}");
+            }
+        }
+        foreach (var license in _probeLicenses)
+        {
+            foreach (var situation in license.Value)
+            {
+                _logger.LogInfo($"{license.Key}, {situation}");
+            }
+        }
 
-        _logger.LogInfo("" + Game.PartsManager.PartsList.ToString());
-
-        //foreach (var crew in simVessel.GetVesselCrew())
-        //{
-            
-        //    _logger.LogInfo($"Crew.Name: {crew.Name}");
-        //    _logger.LogInfo($"Crew.DisplayName: {crew.DisplayName}");
-        //    _logger.LogInfo($"Crew.Guid: {crew.Guid}");
-        //    _logger.LogInfo($"Crew.GetState: {crew.GetState()}");
-        //    _logger.LogInfo($"Crew.GetType: {crew.GetType()}");
-        //    _logger.LogInfo($"Crew.GlobalId: {crew.GlobalId}");
-        //}
         _awardAmount = 0;
         foreach (var body in _goals)
         {
@@ -304,6 +320,54 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 _craftSituationOld = _craftSituation;
             }
         }
+
+        void AddSituationToLicense()
+        {
+            foreach (var kerbal in _kerbalLicenses)
+            {
+
+            }
+        }
+    }
+
+    /// <summary>
+    /// Takes a kerbal or probe's ID and creates a no-restriction license using it.
+    /// </summary>
+    /// <param name="guid">Kerbal "Id" or Probe part's "GlobalId"</param>
+    /// <param name="isKerbal"><code>true</code> for kerbals, <code>false</code> for probes.</param>
+    /// <returns><code>true</code> if the license was created, <code>false</code> if not.</returns>
+    private bool InstantiateController(string guid, bool isKerbal)
+    {
+
+#nullable enable
+        VesselComponent? simVessel = Vehicle.ActiveSimVessel;
+        if (simVessel == null) return false;
+#nullable disable
+
+        if (isKerbal)
+        {
+            if (_kerbalLicenses.ContainsKey(guid)) return false;
+            if (_kerbalLicenses[guid].ContainsKey(simVessel.mainBody.Name)) return false;
+            //_kerbalLicenses[guid][simVessel.mainBody.Name].Add(_craftSituation);
+
+            _kerbalLicenses[guid] = new();
+            foreach (var body in _goals)
+            {
+                _kerbalLicenses[guid][body.BodyName] = new();
+            }
+            
+        } else
+        {
+            if (_probeLicenses.ContainsKey(guid)) return false;
+            if (_probeLicenses[guid].ContainsKey(simVessel.mainBody.ToString())) return false;
+
+            _probeLicenses[guid] = new();
+            foreach (var body in _goals)
+            {
+                _probeLicenses[guid][body.BodyName] = new();
+            }
+        }
+        return true;
     }
 
     /// <summary>
@@ -804,6 +868,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
     }
 
+    [JsonObject(MemberSerialization.OptIn)]
     private class SituationOccurance
     {
         [JsonProperty("bodyName")] public string BodyName { get; set; }
@@ -815,8 +880,16 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         [JsonProperty("orbit")] public int Orbit { get; set; }
     }
 
-    // Parts of the next two methods are copy-pasted from VChristof's InteractiveFilter mod
-    [HarmonyPatch(typeof(AssemblyFilterContainer), nameof(AssemblyFilterContainer.AddButton))]
+    [JsonObject(MemberSerialization.OptIn)]
+    private class PodProbeDistinction
+    {
+        [JsonProperty("modVersion")] public string ModVersion { get; set; }
+        [JsonProperty("crewed")] public List<string> Crewed { get; set; }
+        [JsonProperty("uncrewed")] public List<string> Uncrewed { get; set; }
+    }
+
+        // Parts of the next two methods are copy-pasted from VChristof's InteractiveFilter mod
+        [HarmonyPatch(typeof(AssemblyFilterContainer), nameof(AssemblyFilterContainer.AddButton))]
     class PatchAssemblyFilterContainer
     {
         [HarmonyPostfix]
