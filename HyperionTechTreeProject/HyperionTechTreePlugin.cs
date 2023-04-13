@@ -302,6 +302,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 _situationOccurances[simVessel.mainBody.bodyName][_craftSituation]++; 
                 _remainingTime = float.MaxValue;
                 AddSituationToLicense();
+                _scrollbarPos = new Vector2(0, float.MaxValue);
             }
 
             if (_craftSituation != _craftSituationOld)
@@ -331,11 +332,13 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                     {
                         _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Previous science interrupted! Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] <color=#ff0000>Previous science interrupted!</color> Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                        _scrollbarPos = new Vector2(0, float.MaxValue);
                     }
                     else
                     {
                         _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                        _scrollbarPos = new Vector2(0, float.MaxValue);
                     }
                     _remainingTime = ScienceSecondsOfDelay;
                     _craftSituationOld = _craftSituation;
