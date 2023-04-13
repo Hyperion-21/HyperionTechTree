@@ -10,7 +10,7 @@
         <Description>A modded tech tree independent of the stock KSP2 tech system.</Description>
         <Version>0.0.1</Version>
         <RestoreAdditionalProjectSources>
-            https://api.nuget.org/v3/index.json;
+            https://api.nuget.org/v3/index.json
             https://nuget.spacewarp.org/v3/index.json
         </RestoreAdditionalProjectSources>
         <RootNamespace>HyperionTechTree</RootNamespace>
@@ -21,9 +21,6 @@
             <HintPath>..\external_dlls\Assembly-CSharp.dll</HintPath>
             <Publicize>true</Publicize>
             <Private>false</Private>
-        </Reference>
-        <Reference Include="SpaceWarp">
-          <HintPath>..\external_dlls\SpaceWarp.dll</HintPath>
         </Reference>
     </ItemGroup>
     <ItemGroup>

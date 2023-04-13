@@ -15,6 +15,7 @@ using KSP.Game;
 using SpaceWarp.API.Game;
 using KSP.Sim;
 using KSP.Sim.impl;
+using KSP.UI;
 
 namespace HyperionTechTree;
 
@@ -208,7 +209,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 #nullable disable
 
         PartComponentModule_Command module = new();
-        List<KerbalInfo> kerfo;
+        List<KerbalInfo> kerfo = new();
 
         foreach (var part in simVessel.GetControlOwner()._partOwner._parts.PartsEnumerable)
         {
@@ -235,22 +236,21 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             }
         }
 
-        _logger.LogInfo(_kerbalLicenses.Count);
-        foreach (var license in _kerbalLicenses)
-        {
-            _logger.LogInfo(license.Value.Count);
-            foreach (var situation in license.Value)
-            {
-                _logger.LogInfo($"{license.Key}, {situation}");
-            }
-        }
-        foreach (var license in _probeLicenses)
-        {
-            foreach (var situation in license.Value)
-            {
-                _logger.LogInfo($"{license.Key}, {situation}");
-            }
-        }
+        
+        //foreach (var license in _kerbalLicenses)
+        //{
+        //    foreach (var situation in license.Value)
+        //    {
+                
+        //    }
+        //}
+        //foreach (var license in _probeLicenses)
+        //{
+        //    foreach (var situation in license.Value)
+        //    {
+                
+        //    }
+        //}
 
         _awardAmount = 0;
         foreach (var body in _goals)
@@ -301,32 +301,68 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 _sciradLog.Add($"<color=#00ffff>[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Science complete! Gained {_awardAmount} tech points!</color>");
                 _situationOccurances[simVessel.mainBody.bodyName][_craftSituation]++; 
                 _remainingTime = float.MaxValue;
+                AddSituationToLicense();
             }
 
             if (_craftSituation != _craftSituationOld)
             {
-                
-                if (_remainingTime < 10)
+
+                // behold, Frakenstein's if-statement
+                if (new Func<bool>(() =>
                 {
-                    _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Previous science interrupted! Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
-                    _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] <color=#ff0000>Previous science interrupted!</color> Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
-                } 
+                    foreach (var kerbal in _kerbalLicenses)
+                    {
+                        foreach (var celes in kerbal.Value)
+                        {
+                            if (_kerbalLicenses[kerbal.Key][celes.Key].Contains(_craftSituation)) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }
+                )())
+                {
+                    _logger.LogInfo("The monstrosity if-statement says NO to your science!");
+                }
                 else
                 {
-                    _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
-                    _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                    if (_remainingTime < 10)
+                    {
+                        _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Previous science interrupted! Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                        _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] <color=#ff0000>Previous science interrupted!</color> Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                    }
+                    else
+                    {
+                        _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                        _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                    }
+                    _remainingTime = ScienceSecondsOfDelay;
+                    _craftSituationOld = _craftSituation;
                 }
-                _remainingTime = ScienceSecondsOfDelay;
-                _craftSituationOld = _craftSituation;
             }
         }
 
         void AddSituationToLicense()
         {
-            foreach (var kerbal in _kerbalLicenses)
+            foreach (var kerbal in kerfo)
             {
-
-            }
+                foreach (var part in simVessel.GetControlOwner()._partOwner._parts.PartsEnumerable)
+                {
+                    if (kerbal.Location.SimObjectId == part.GlobalId)
+                    {
+                        if (_kerbalLicenses[kerbal.Id.ToString()][simVessel.mainBody.Name].Contains(_craftSituation))
+                        {
+                            _logger.LogWarning($"Situation {_craftSituation} already in license of {kerbal.Id}");
+                        }
+                        else
+                        {
+                            _logger.LogInfo($"Situation added to license!\nID: {part.GlobalId}\nKerbal Name: {kerbal.NameKey}\nSituation: {_craftSituation}");
+                            _kerbalLicenses[kerbal.Id.ToString()][simVessel.mainBody.Name].Add(_craftSituation);
+                        }
+                    }
+                }
+            }   
         }
     }
 
@@ -347,10 +383,13 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         if (isKerbal)
         {
             if (_kerbalLicenses.ContainsKey(guid)) return false;
+
+            _kerbalLicenses[guid] = new();
+            _logger.LogInfo($"Created key for {guid}");
+
             if (_kerbalLicenses[guid].ContainsKey(simVessel.mainBody.Name)) return false;
             //_kerbalLicenses[guid][simVessel.mainBody.Name].Add(_craftSituation);
 
-            _kerbalLicenses[guid] = new();
             foreach (var body in _goals)
             {
                 _kerbalLicenses[guid][body.BodyName] = new();
@@ -688,6 +727,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             GUI.DrawTexture(new Rect(140, 562, 410, 5), GetTextureFromColor(new Color(0f, 0f, 0f, 1f)));
             if (_remainingTime < 10 && _remainingTime > 0)
             {
+                
                 var roundedTime = Math.Round(_remainingTime, 1).ToString();
                 if (roundedTime.Length == 1) roundedTime += ".0";
 
@@ -710,6 +750,19 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 GUILayout.Label($"Low Space: {_situationOccurances[goal.BodyName][CraftSituation.LowSpace]}");
                 GUILayout.Label($"High Space: {_situationOccurances[goal.BodyName][CraftSituation.HighSpace]}");
                 GUILayout.Label($"Orbit: {_situationOccurances[goal.BodyName][CraftSituation.Orbit]}");
+                foreach (var license in _kerbalLicenses)
+                {
+                    GUILayout.Label($"license debug data: 1| {license.Key}");
+                    foreach (var license2 in license.Value)
+                    {
+                        GUILayout.Label("2| " + license2.Key);
+                        foreach (var license3 in license2.Value)
+                        {
+                            GUILayout.Label("3| " + license3.ToString());
+                        }
+                        
+                    }
+                }
             }
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
