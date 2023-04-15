@@ -16,6 +16,8 @@ using SpaceWarp.API.Game;
 using KSP.Sim;
 using KSP.Sim.impl;
 using KSP.UI;
+using KSP.Iteration.UI.Binding;
+using static KSP.Api.UIDataPropertyStrings.View.Vessel.Stages;
 
 namespace HyperionTechTree;
 
@@ -52,11 +54,11 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     }
     private static WindowTabs _windowTab = WindowTabs.TechTree;
 
-    private const float ScienceSecondsOfDelay = 10;
-    private static float _remainingTime = float.MaxValue;
-    private static float _awardAmount = 0;
+    protected const float ScienceSecondsOfDelay = 10;
+    protected static float _remainingTime = float.MaxValue;
+    protected static float _awardAmount = 0;
 
-    private enum CraftSituation
+    protected enum CraftSituation
     {
         Landed,
         LowAtmosphere,
@@ -66,14 +68,13 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         Orbit
     }
     
-    private static bool _isCraftOrbiting = false;
+    protected static bool _isCraftOrbiting = false;
     // _craftSituation is never set to Orbit, use _isCraftOrbiting instead. That enum value is there for tracking situation occurances.
-    private static CraftSituation _craftSituation = CraftSituation.Landed;
-    private static CraftSituation _craftSituationOld = CraftSituation.Landed;
+    protected static CraftSituation _craftSituation = CraftSituation.Landed;
+    protected static CraftSituation _craftSituationOld = CraftSituation.Landed;
 
-    private static Dictionary<string, Dictionary<CraftSituation, int>> _situationOccurances = new();
-    private static Dictionary<string, Dictionary<string, List<CraftSituation>>> _probeLicenses = new();
-    private static Dictionary<string, Dictionary<string, List<CraftSituation>>> _kerbalLicenses = new();
+    protected static Dictionary<string, Dictionary<CraftSituation, int>> _situationOccurances = new();
+    
     //private static Dictionary<string, List<string>> _scienceLicenses = new();
 
     private static Texture2D _tex = new(1, 1);
@@ -200,41 +201,10 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         if (Game?.GlobalGameState?.GetState() != GameState.FlightView) return;
 
+        KerbalProbeManager.UpdateKPM();
         
 
-#nullable enable
-        VesselComponent? simVessel = Vehicle.ActiveSimVessel;
-        VesselVehicle? vesselVehicle = Vehicle.ActiveVesselVehicle;
-        if (simVessel == null || vesselVehicle == null) return;
-#nullable disable
-
-        PartComponentModule_Command module = new();
-        List<KerbalInfo> kerfo = new();
-
-        foreach (var part in simVessel.GetControlOwner()._partOwner._parts.PartsEnumerable)
-        {
-            
-            if (part.TryGetModule<PartComponentModule_Command>(out module))
-            {
-                kerfo = Game.KerbalManager._kerbalRosterManager.GetAllKerbalsInSimObject(part.GlobalId);
-                //if (kerfo == null) continue;
-                foreach (var kerbal in kerfo) 
-                    if (!_kerbalLicenses.ContainsKey(kerbal.Id.ToString()))
-                    {
-                        InstantiateController(kerbal.Id.ToString(), true);
-                        //_kerbalLicenses.Add(kerbal.Id.ToString(), new());
-                    }
-                
-                if (kerfo.Count < 1 && _ppdUncrewed.Contains(part.PartName)) {
-                    _logger.LogInfo("Probe ID: " + part.GlobalId.ToString());
-                    if (!_probeLicenses.ContainsKey(part.GlobalId.ToString()))
-                    {
-                        InstantiateController(part.GlobalId.ToString(), false);
-                        //_probeLicenses.Add(part.GlobalId.ToString(), new());
-                    }
-                }
-            }
-        }
+        
 
         
         //foreach (var license in _kerbalLicenses)
@@ -255,39 +225,39 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         _awardAmount = 0;
         foreach (var body in _goals)
         {
-            if (body.BodyName != simVessel.mainBody.bodyName) continue;
+            if (body.BodyName != _simVessel.mainBody.bodyName) continue;
 
-            if ((int)simVessel.Situation <= 2)
+            if ((int)_simVessel.Situation <= 2)
             {
                 _craftSituation = CraftSituation.Landed;
                 _awardAmount = (float)(body.LandedAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.Landed]));
                 //_logger.LogInfo("Craft is landed!");
             }
-            //else if (simVessel.Situation == KSP.Sim.impl.VesselSituations.Splashed)
+            //else if (_simVessel.Situation == KSP.Sim.impl.VesselSituations.Splashed)
             //{
             //    _craftSituation = CraftSituation.Splashed;
             //    _awardAmount = body.LandedAward;
             //    //_logger.LogInfo("Craft is splashed!");
             //}
-            else if (simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel < body.AtmosphereThreshold && (int)simVessel.Situation > 2)
+            else if (_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel < body.AtmosphereThreshold && (int)_simVessel.Situation > 2)
             {
                 _craftSituation = CraftSituation.LowAtmosphere;
                 _awardAmount = (float)(body.LowAtmosphereAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.LowAtmosphere]));
                 //_logger.LogInfo("Craft is flying in low atmosphere!");
             }
-            else if (simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel >= body.AtmosphereThreshold)
+            else if (_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel >= body.AtmosphereThreshold)
             {
                 _craftSituation = CraftSituation.HighAtmosphere;
                 _awardAmount = (float)(body.HighAtmosphereAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.HighAtmosphere]));
                 //_logger.LogInfo("Craft is flying in high atmosphere!");
             }
-            else if (!simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel < body.SpaceThreshold)
+            else if (!_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel < body.SpaceThreshold)
             {
                 _craftSituation = CraftSituation.LowSpace;
                 _awardAmount = (float)(body.LowSpaceAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.LowSpace]));
                 //_logger.LogInfo("Craft is flying in low space!");
             }
-            else if (!simVessel.IsInAtmosphere && simVessel.AltitudeFromSeaLevel >= body.SpaceThreshold)
+            else if (!_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel >= body.SpaceThreshold)
             {
                 _craftSituation = CraftSituation.HighSpace;
                 _awardAmount = (float)(body.HighSpaceAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.HighSpace]));
@@ -299,7 +269,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 _techPointBalance += _awardAmount;
                 _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Science complete! Gained {_awardAmount} tech points!");
                 _sciradLog.Add($"<color=#00ffff>[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Science complete! Gained {_awardAmount} tech points!</color>");
-                _situationOccurances[simVessel.mainBody.bodyName][_craftSituation]++; 
+                _situationOccurances[_simVessel.mainBody.bodyName][_craftSituation]++; 
                 _remainingTime = float.MaxValue;
                 AddSituationToLicense();
                 _scrollbarPos = new Vector2(0, float.MaxValue);
@@ -324,7 +294,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 }
                 )())
                 {
-                    _logger.LogInfo("The monstrosity if-statement says NO to your science!");
+                    _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {_craftSituationOld}. Going to {_craftSituation}.");
+                    _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {_craftSituationOld}. Going to {_craftSituation}.");
                 }
                 else
                 {
@@ -341,8 +312,9 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                         _scrollbarPos = new Vector2(0, float.MaxValue);
                     }
                     _remainingTime = ScienceSecondsOfDelay;
-                    _craftSituationOld = _craftSituation;
+                    
                 }
+                _craftSituationOld = _craftSituation;
             }
         }
 
@@ -350,18 +322,18 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         {
             foreach (var kerbal in kerfo)
             {
-                foreach (var part in simVessel.GetControlOwner()._partOwner._parts.PartsEnumerable)
+                foreach (var part in _simVessel.GetControlOwner()._partOwner._parts.PartsEnumerable)
                 {
                     if (kerbal.Location.SimObjectId == part.GlobalId)
                     {
-                        if (_kerbalLicenses[kerbal.Id.ToString()][simVessel.mainBody.Name].Contains(_craftSituation))
+                        if (_kerbalLicenses[kerbal.Id.ToString()][_simVessel.mainBody.Name].Contains(_craftSituation))
                         {
                             _logger.LogWarning($"Situation {_craftSituation} already in license of {kerbal.Id}");
                         }
                         else
                         {
                             _logger.LogInfo($"Situation added to license!\nID: {part.GlobalId}\nKerbal Name: {kerbal.NameKey}\nSituation: {_craftSituation}");
-                            _kerbalLicenses[kerbal.Id.ToString()][simVessel.mainBody.Name].Add(_craftSituation);
+                            _kerbalLicenses[kerbal.Id.ToString()][_simVessel.mainBody.Name].Add(_craftSituation);
                         }
                     }
                 }
@@ -369,48 +341,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         }
     }
 
-    /// <summary>
-    /// Takes a kerbal or probe's ID and creates a no-restriction license using it.
-    /// </summary>
-    /// <param name="guid">Kerbal "Id" or Probe part's "GlobalId"</param>
-    /// <param name="isKerbal"><code>true</code> for kerbals, <code>false</code> for probes.</param>
-    /// <returns><code>true</code> if the license was created, <code>false</code> if not.</returns>
-    private bool InstantiateController(string guid, bool isKerbal)
-    {
-
-#nullable enable
-        VesselComponent? simVessel = Vehicle.ActiveSimVessel;
-        if (simVessel == null) return false;
-#nullable disable
-
-        if (isKerbal)
-        {
-            if (_kerbalLicenses.ContainsKey(guid)) return false;
-
-            _kerbalLicenses[guid] = new();
-            _logger.LogInfo($"Created key for {guid}");
-
-            if (_kerbalLicenses[guid].ContainsKey(simVessel.mainBody.Name)) return false;
-            //_kerbalLicenses[guid][simVessel.mainBody.Name].Add(_craftSituation);
-
-            foreach (var body in _goals)
-            {
-                _kerbalLicenses[guid][body.BodyName] = new();
-            }
-            
-        } else
-        {
-            if (_probeLicenses.ContainsKey(guid)) return false;
-            if (_probeLicenses[guid].ContainsKey(simVessel.mainBody.ToString())) return false;
-
-            _probeLicenses[guid] = new();
-            foreach (var body in _goals)
-            {
-                _probeLicenses[guid][body.BodyName] = new();
-            }
-        }
-        return true;
-    }
+    
 
     /// <summary>
     /// Generates a save file from various things, and saves it in {Plugin Folder Path}/Saves/SinglePlayer/{Active Campaign Folder Path}/{Save File Name}.json
@@ -490,6 +421,160 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         _techPointBalance = deserializedJson.TechPointBalance;
 
         return true;
+    }
+
+
+    /// <summary>
+    /// Abstractions for code that handle kerbal and probes.
+    /// </summary>
+    private static class KerbalProbeManager
+    {
+        private static readonly Dictionary<CraftSituation, string> CraftSituationSpaced = new()
+        {
+            { CraftSituation.Landed, "Landed" },
+            { CraftSituation.LowAtmosphere, "Low Atmosphere" },
+            { CraftSituation.HighAtmosphere, "High Atmosphere" },
+            { CraftSituation.LowSpace, "Low Space" },
+            { CraftSituation.HighSpace, "High Space" },
+            { CraftSituation.Orbit, "Orbit" }
+        };
+
+        private static VesselComponent _simVessel;
+        private static VesselVehicle _vesselVehicle;
+
+        private static PartComponentModule_Command _module = new();
+        private static List<KerbalInfo> _kerfo = new();
+        private static Dictionary<string, Dictionary<string, List<CraftSituation>>> _kerbalLicenses = new();
+
+        private static Dictionary<string, Dictionary<string, List<CraftSituation>>> _probeLicenses = new();
+
+        private static List<PartComponent> _allPartsInVessel = new();
+
+        /// <summary>
+        /// "Constructs" KPM, despite it being static
+        /// </summary>
+        public static void KerbalProbeManagerInitialize()
+        {
+            
+        }
+
+        /// <summary>
+        /// Runs every "update" method in KPM
+        /// </summary>
+        public static void UpdateKPM()
+        {
+            UpdateVessels();
+            UpdateKerfo();
+            UpdateParts();
+        }
+
+        /// <summary>
+        /// Sets _simVessel and _vesselVehicle to the active vessel.
+        /// </summary>
+        /// <returns>Bool for if the update was successful. (this hides null reference exceptions)</returns>
+        public static bool UpdateVessels()
+        {
+            try
+            {
+                _simVessel = Vehicle.ActiveSimVessel;
+                _vesselVehicle = Vehicle.ActiveVesselVehicle;
+                return true;
+            } catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public static bool UpdateKerfo()
+        {
+            try
+            {
+                UpdateVessels();
+                _kerfo = Game.KerbalManager._kerbalRosterManager.GetAllKerbalsInSimObject(_simVessel.GlobalId);
+                return true;
+            } catch (Exception)
+            {
+                return false;
+            }
+            
+        }
+
+        public static bool UpdateParts()
+        {
+            try
+            {
+                _allPartsInVessel = _simVessel.GetControlOwner()._partOwner._parts.PartsEnumerable.ToList();
+                return true;
+            } catch (Exception) { 
+                return false; 
+            }
+        }
+
+        /// <summary>
+        /// Instantiates licenses for kerbals and probes.
+        /// </summary>
+        public static void GenerateLicenses()
+        {
+            foreach (var part in _allPartsInVessel)
+            {
+                foreach (var kerbal in _kerfo)
+                    if (!_kerbalLicenses.ContainsKey(kerbal.Id.ToString()))
+                    {
+                        InstantiateController(kerbal.Id.ToString(), true);
+                        //_kerbalLicenses.Add(kerbal.Id.ToString(), new());
+                    }
+
+                if (_kerfo.Count < 1 && _ppdUncrewed.Contains(part.PartName))
+                {
+                    if (!_probeLicenses.ContainsKey(part.GlobalId.ToString()))
+                    {
+                        InstantiateController(part.GlobalId.ToString(), false);
+                        //_probeLicenses.Add(part.GlobalId.ToString(), new());
+                    }
+                }
+                
+            }
+        }
+
+        /// <summary>
+        /// Takes a kerbal or probe's ID and creates a no-restriction license using it.
+        /// </summary>
+        /// <param name="guid">Kerbal "Id" or Probe part's "GlobalId"</param>
+        /// <param name="isKerbal"><code>true</code> for kerbals, <code>false</code> for probes.</param>
+        /// <returns><code>true</code> if the license was created, <code>false</code> if not.</returns>
+        private static bool InstantiateController(string guid, bool isKerbal)
+        {
+            if (_simVessel == null) return false;
+
+            if (isKerbal)
+            {
+                if (_kerbalLicenses.ContainsKey(guid)) return false;
+
+                _kerbalLicenses[guid] = new();
+                _logger.LogInfo($"Created key for {guid}");
+
+                if (_kerbalLicenses[guid].ContainsKey(_simVessel.mainBody.Name)) return false;
+                //_kerbalLicenses[guid][_simVessel.mainBody.Name].Add(_craftSituation);
+
+                foreach (var body in _goals)
+                {
+                    _kerbalLicenses[guid][body.BodyName] = new();
+                }
+
+            }
+            else
+            {
+                if (_probeLicenses.ContainsKey(guid)) return false;
+                if (_probeLicenses[guid].ContainsKey(_simVessel.mainBody.ToString())) return false;
+
+                _probeLicenses[guid] = new();
+                foreach (var body in _goals)
+                {
+                    _probeLicenses[guid][body.BodyName] = new();
+                }
+            }
+            return true;
+        }
     }
 
 
@@ -746,26 +831,40 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             GUILayout.Space(-_windowHeight);
             foreach (var goal in _goals)
             {
+
                 GUILayout.Button(goal.BodyName, GUILayout.Width(200));
-                GUILayout.Label($"Landed: {_situationOccurances[goal.BodyName][CraftSituation.Landed]}");
-                GUILayout.Label($"Low Atmosphere: {_situationOccurances[goal.BodyName][CraftSituation.LowAtmosphere]}");
-                GUILayout.Label($"High Atmosphere: {_situationOccurances[goal.BodyName][CraftSituation.HighAtmosphere]}");
-                GUILayout.Label($"Low Space: {_situationOccurances[goal.BodyName][CraftSituation.LowSpace]}");
-                GUILayout.Label($"High Space: {_situationOccurances[goal.BodyName][CraftSituation.HighSpace]}");
-                GUILayout.Label($"Orbit: {_situationOccurances[goal.BodyName][CraftSituation.Orbit]}");
-                foreach (var license in _kerbalLicenses)
-                {
-                    GUILayout.Label($"license debug data: 1| {license.Key}");
-                    foreach (var license2 in license.Value)
-                    {
-                        GUILayout.Label("2| " + license2.Key);
-                        foreach (var license3 in license2.Value)
-                        {
-                            GUILayout.Label("3| " + license3.ToString());
-                        }
+
+                Dictionary<CraftSituation, char> charadd = new();
+
+                foreach (var sit in (CraftSituation[])Enum.GetValues(typeof(CraftSituation))) charadd.Add(sit, 'X');
+
+                foreach (var kerbalID in _kerbalLicenses)
+                    foreach (var part in _simVessel.GetControlOwner()._partOwner._parts.PartsEnumerable)
+                        foreach (var kerbal in Game.KerbalManager._kerbalRosterManager.GetAllKerbalsInSimObject(part.GlobalId))
+                            if (kerbal.Location.SimObjectId == part.GlobalId) 
+                                foreach (var sit in (CraftSituation[])Enum.GetValues(typeof(CraftSituation)))
+                                    if (_kerbalLicenses[kerbal.Id.ToString()][goal.BodyName].Contains(sit))
+                                        charadd[sit] = '✓';
+                                    
+                GUILayout.Label($"Landed: {_situationOccurances[goal.BodyName][CraftSituation.Landed]} {charadd[CraftSituation.Landed]}");
+                GUILayout.Label($"Low Atmosphere: {_situationOccurances[goal.BodyName][CraftSituation.LowAtmosphere]} {charadd[CraftSituation.LowAtmosphere]}");
+                GUILayout.Label($"High Atmosphere: {_situationOccurances[goal.BodyName][CraftSituation.HighAtmosphere]} {charadd[CraftSituation.HighAtmosphere]}");
+                GUILayout.Label($"Low Space: {_situationOccurances[goal.BodyName][CraftSituation.LowSpace]} {charadd[CraftSituation.LowSpace]}");
+                GUILayout.Label($"High Space: {_situationOccurances[goal.BodyName][CraftSituation.HighSpace]} {charadd[CraftSituation.HighSpace]}");
+                GUILayout.Label($"Orbit: {_situationOccurances[goal.BodyName][CraftSituation.Orbit]} {charadd[CraftSituation.Orbit]}");
+                //foreach (var license in _kerbalLicenses)
+                //{
+                //    GUILayout.Label($"license debug data: 1| {license.Key}");
+                //    foreach (var license2 in license.Value)
+                //    {
+                //        GUILayout.Label("2| " + license2.Key);
+                //        foreach (var license3 in license2.Value)
+                //        {
+                //            GUILayout.Label("3| " + license3.ToString());
+                //        }
                         
-                    }
-                }
+                //    }
+                //}
             }
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
