@@ -5,7 +5,7 @@
   "description": "A modded tech tree independent of the stock KSP2 tech system.",
   "source": "https://github.com/Hyperion-21/HyperionTechTree",
   "version": "0.0.1",
-  "version_check": "",
+  "version_check": "https://raw.githubusercontent.com/Hyperion-21/HyperionTechTree/main/hyperion_tech_tree/swinfo.json",
   "dependencies": [
     {
       "id":  "SpaceWarp",

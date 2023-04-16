@@ -629,7 +629,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 GUILayout.Label(log);
             }
             GUILayout.EndScrollView();
-            GUI.DrawTexture(new Rect(140, 562, 410, 5), GetTextureFromColor(new Color(0f, 0f, 0f, 1f)));
+            GUI.DrawTexture(new Rect(140, 562, 419, 5), GetTextureFromColor(new Color(0f, 0f, 0f, 1f)));
             if (_remainingTime < 10 && _remainingTime > 0)
             {
                 
@@ -637,7 +637,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 if (roundedTime.Length == 1) roundedTime += ".0";
 
                 GUI.Label(new Rect(149, 535, 400, 40), $"{roundedTime}s Remaining | {_awardAmount} Tech Points");
-                GUI.DrawTexture(new Rect(140, 562, 410 - (41 * _remainingTime), 5), GetTextureFromColor(new Color(1f, 1f, 1f, 1f)));
+                GUI.DrawTexture(new Rect(140, 562, 419 - (41.9f * _remainingTime), 5), GetTextureFromColor(new Color(1f, 1f, 1f, 1f)));
             }
             else
             {
