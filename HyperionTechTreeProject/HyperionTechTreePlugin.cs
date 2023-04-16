@@ -663,7 +663,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                             GUILayout.Label($"|-- {name.Value}: {_situationOccurances[goal.BodyName][name.Key]}");
                             break;
                         case GameState.FlightView:
-                            GUILayout.Label($"|-- {name.Value}: {Checkmark(name.Key)} ({_situationOccurances[goal.BodyName][name.Key]})");
+                            GUILayout.Label($"|-- {name.Value}: {Checkmark(name.Key, goal.BodyName)} ({_situationOccurances[goal.BodyName][name.Key]})");
                             break;
                     }
                     //GUILayout.Label($"|-- {name.Value}: {Checkmark(CraftSituation.Landed)} ({_situationOccurances[goal.BodyName][CraftSituation.Landed]})");

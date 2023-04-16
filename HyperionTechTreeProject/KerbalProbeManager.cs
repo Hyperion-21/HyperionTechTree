@@ -244,14 +244,13 @@ public class KerbalProbeManager
     }
 
 
-    internal static char Checkmark(CraftSituation sit)
+    internal static char Checkmark(CraftSituation sit, string currentBody)
     {
         if (Game?.GlobalGameState?.GetState() != GameState.FlightView) return ' ';
-        foreach (var goal in GoalsList)
             foreach (var part in SimVessel.GetControlOwner()._partOwner._parts.PartsEnumerable)
                 foreach (var kerbal in Game.KerbalManager._kerbalRosterManager.GetAllKerbalsInSimObject(part.GlobalId))
                     if (kerbal.Location.SimObjectId == part.GlobalId)
-                        if (_kerbalLicenses[kerbal.Id.ToString()][goal.BodyName].Contains(sit))
+                        if (_kerbalLicenses[kerbal.Id.ToString()][currentBody].Contains(sit))
                             return '✓';
         return 'X';
     }
