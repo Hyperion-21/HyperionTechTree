@@ -46,8 +46,10 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static float _techTreex2 = -10000;
     private static float _techTreey1 = 10000;
     private static float _techTreey2 = -10000;
-    private static Vector2 _scrollbarPos = Vector2.zero;
+    private static Vector2 _scrollbarPos1 = Vector2.zero;
+    private static Vector2 _scrollbarPos2 = Vector2.zero;
     private static List<string> _sciradLog = new();
+    private static Dictionary<string, bool> _collapsableList = new();
     private enum WindowTabs
     {
         TechTree,
@@ -64,6 +66,24 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         HighSpace,
         Orbit
     }
+    internal static readonly Dictionary<CraftSituation, string> CraftSituationSpaced = new()
+    {
+        { CraftSituation.Landed, "Landed" },
+        { CraftSituation.LowAtmosphere, "Low Atmosphere" },
+        { CraftSituation.HighAtmosphere, "High Atmosphere" },
+        { CraftSituation.LowSpace, "Low Space" },
+        { CraftSituation.HighSpace, "High Space" },
+        { CraftSituation.Orbit, "Orbit" }
+    };
+    internal static readonly Dictionary<CraftSituation, string> CraftSituationSpacedShort = new()
+    {
+        { CraftSituation.Landed, "Landed" },
+        { CraftSituation.LowAtmosphere, "Low Atmo" },
+        { CraftSituation.HighAtmosphere, "High Atmo" },
+        { CraftSituation.LowSpace, "Low Space" },
+        { CraftSituation.HighSpace, "High Space" },
+        { CraftSituation.Orbit, "Orbit" }
+    };
     protected const float ScienceSecondsOfDelay = 10;
     protected static float _remainingTime = float.MaxValue;
     protected static float _awardAmount = 0;
@@ -183,12 +203,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         
         GenerateTechs();
         GenerateGoals();
-
-        
-
         KerbalProbeManagerInitialize();
-
-        _logger.LogInfo(GoalsList.Count);
         GenerateSituationOccurances();
         GeneratePPD();
         GenerateLicenses();
@@ -224,65 +239,46 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         _simVessel = SimVessel;
         _vesselVehicle = KerbalProbeManager.VesselVehicle;
-        
-
-
-    //foreach (var license in _kerbalLicenses)
-    //{
-    //    foreach (var situation in license.Value)
-    //    {
-
-    //    }
-    //}
-    //foreach (var license in _probeLicenses)
-    //{
-    //    foreach (var situation in license.Value)
-    //    {
-
-    //    }
-    //}
+        if (_simVessel == null) return;
 
         _awardAmount = 0;
         foreach (var body in GoalsList)
         {
             if (body.BodyName != _simVessel.mainBody.bodyName) continue;
 
-            if ((int)_simVessel.Situation <= 2)
+            if ((int)_simVessel.Situation <= 2 && body.HasSurface)
             {
                 _craftSituation = CraftSituation.Landed;
                 _awardAmount = (float)(body.LandedAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.Landed]));
-                //_logger.LogInfo("Craft is landed!");
             }
-            //else if (_simVessel.Situation == KSP.Sim.impl.VesselSituations.Splashed)
-            //{
-            //    _craftSituation = CraftSituation.Splashed;
-            //    _awardAmount = body.LandedAward;
-            //    //_logger.LogInfo("Craft is splashed!");
-            //}
-            else if (_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel < body.AtmosphereThreshold && (int)_simVessel.Situation > 2)
+            else if (_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel < body.AtmosphereThreshold && (int)_simVessel.Situation > 2 && body.HasAtmosphere)
             {
                 _craftSituation = CraftSituation.LowAtmosphere;
                 _awardAmount = (float)(body.LowAtmosphereAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.LowAtmosphere]));
-                //_logger.LogInfo("Craft is flying in low atmosphere!");
             }
-            else if (_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel >= body.AtmosphereThreshold)
+            else if (_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel >= body.AtmosphereThreshold && body.HasAtmosphere)
             {
                 _craftSituation = CraftSituation.HighAtmosphere;
                 _awardAmount = (float)(body.HighAtmosphereAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.HighAtmosphere]));
-                //_logger.LogInfo("Craft is flying in high atmosphere!");
+                _logger.LogInfo("_awardAmount " + _awardAmount);
+                _logger.LogInfo(" body.LowSpaceAward " + body.HighAtmosphereAward);
+                _logger.LogInfo("(double)_situationOccurances[body.BodyName][CraftSituation.HighAtmosphere] " + (double)_situationOccurances[body.BodyName][CraftSituation.HighAtmosphere]);
             }
             else if (!_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel < body.SpaceThreshold)
             {
+                
                 _craftSituation = CraftSituation.LowSpace;
                 _awardAmount = (float)(body.LowSpaceAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.LowSpace]));
-                //_logger.LogInfo("Craft is flying in low space!");
+                _logger.LogInfo("_awardAmount " + _awardAmount);
+                _logger.LogInfo(" body.LowSpaceAward " + body.LowSpaceAward);
+                _logger.LogInfo("(double)_situationOccurances[body.BodyName][CraftSituation.LowSpace] " + (double)_situationOccurances[body.BodyName][CraftSituation.LowSpace]);
             }
             else if (!_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel >= body.SpaceThreshold)
             {
                 _craftSituation = CraftSituation.HighSpace;
                 _awardAmount = (float)(body.HighSpaceAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.HighSpace]));
-                //_logger.LogInfo("Craft is flying in high space!");
             }
+            //else if (_simVessel.Orbit.peri)
 
             if (_remainingTime < 0)
             {
@@ -292,17 +288,16 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 _situationOccurances[_simVessel.mainBody.bodyName][_craftSituation]++; 
                 _remainingTime = float.MaxValue;
                 AddSituationToLicense();
-                _scrollbarPos = new Vector2(0, float.MaxValue);
+                _scrollbarPos1 = new Vector2(0, float.MaxValue);
             }
 
             if (_craftSituation != _craftSituationOld)
             {
-
-                // behold, Frakenstein's if-statement
                 if (CheckSituationClaimed())
                 {
                     _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {_craftSituationOld}. Going to {_craftSituation}.");
                     _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {_craftSituationOld}. Going to {_craftSituation}.");
+                    _scrollbarPos1 = new Vector2(0, float.MaxValue);
                 }
                 else
                 {
@@ -310,13 +305,13 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                     {
                         _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Previous science interrupted! Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] <color=#ff0000>Previous science interrupted!</color> Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
-                        _scrollbarPos = new Vector2(0, float.MaxValue);
+                        _scrollbarPos1 = new Vector2(0, float.MaxValue);
                     }
                     else
                     {
                         _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
-                        _scrollbarPos = new Vector2(0, float.MaxValue);
+                        _scrollbarPos1 = new Vector2(0, float.MaxValue);
                     }
                     _remainingTime = ScienceSecondsOfDelay;
                     
@@ -456,18 +451,16 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     {
         Color defaultColor = GUI.backgroundColor;
         GUILayout.Label("", GUILayout.Width(_windowWidth), GUILayout.Height(_windowHeight));        
+        GUI.DrawTexture(new Rect(0, 0, 120, 10000), GetTextureFromColor(new Color(1f, 1f, 1f, 1f)));
+        GUI.DrawTexture(new Rect(10, 10, 100, 25), GetTextureFromColor(new Color(0.25f, 0.25f, 0.25f, 1f)));
 
-        Texture2D tex = new(1, 1);
-        //double secondsInCurrentSecond = ((DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds % 1000)  / 1000;
-        //_logger.LogInfo(secondsInCurrentSecond);
-        //Color sidebarColor = new((float)secondsInCurrentSecond, (float)secondsInCurrentSecond, (float)secondsInCurrentSecond);
-        //_logger.LogInfo(sidebarColor.ToString());
-        //tex.SetPixel(0, 0, sidebarColor);
-        GUI.DrawTexture(new Rect(0, 0, 120, 10000), tex);
+        GUIStyle style = new GUIStyle { alignment = TextAnchor.MiddleCenter };
+        style.normal.textColor = Color.white;
+        GUI.Label(new Rect(10, 10, 100, 25), _techPointBalance.ToString(), style);
         GUI.backgroundColor = (_windowTab == WindowTabs.TechTree) ? Color.yellow : Color.blue;
-        if (GUI.Button(new Rect(10, 10, 100, 25), "Tech Tree")) _windowTab = WindowTabs.TechTree;
+        if (GUI.Button(new Rect(10, 45, 100, 25), "Tech Tree")) _windowTab = WindowTabs.TechTree;
         GUI.backgroundColor = (_windowTab == WindowTabs.Goals) ? Color.yellow : Color.blue;
-        if (GUI.Button(new Rect(10, 45, 100, 25), "Goals")) _windowTab = WindowTabs.Goals;
+        if (GUI.Button(new Rect(10, 80, 100, 25), "Goals")) _windowTab = WindowTabs.Goals;
 
         GUI.backgroundColor = Color.red;
         if (GUI.Button(new Rect(_windowWidth - 10, 10, 20, 20), "X")) _isWindowOpen = false;
@@ -642,7 +635,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             GUILayout.Space(130);
             GUILayout.BeginVertical();
             GUILayout.Space(-_windowHeight);
-            _scrollbarPos = GUILayout.BeginScrollView(_scrollbarPos, false, false, GUILayout.Width(200), GUILayout.Height(500));
+            _scrollbarPos1 = GUILayout.BeginScrollView(_scrollbarPos1, false, false, GUILayout.Width(200), GUILayout.Height(500));
             foreach (var log in _sciradLog)
             {
                 GUILayout.Label(log);
@@ -665,27 +658,36 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             GUILayout.EndVertical();
             GUILayout.BeginVertical();
             GUILayout.Space(-_windowHeight);
+            _scrollbarPos2 = GUILayout.BeginScrollView(_scrollbarPos2, false, false, GUILayout.Width(200), GUILayout.Height(500));
             foreach (var goal in GoalsList)
             {
+                if (!_collapsableList.ContainsKey(goal.BodyName)) _collapsableList.Add(goal.BodyName, false);
+                GUI.backgroundColor = new Color(0.25f, 0.25f, 0.25f, 1f);
+                if (GUILayout.Button(goal.BodyName)) _collapsableList[goal.BodyName] = !_collapsableList[goal.BodyName];
+                GUI.backgroundColor = defaultColor;
+                if (!_collapsableList[goal.BodyName]) continue;
 
-                GUILayout.Button(goal.BodyName, GUILayout.Width(200));
+                foreach (var name in CraftSituationSpacedShort)
+                {
+                    switch (Game.GlobalGameState.GetState())
+                    {
+                        default:
+                            GUILayout.Label($"|-- {name.Value}: {_situationOccurances[goal.BodyName][name.Key]}");
+                            break;
+                        case GameState.FlightView:
+                            GUILayout.Label($"|-- {name.Value}: {Checkmark(name.Key)} ({_situationOccurances[goal.BodyName][name.Key]})");
+                            break;
+                    }
+                    //GUILayout.Label($"|-- {name.Value}: {Checkmark(CraftSituation.Landed)} ({_situationOccurances[goal.BodyName][CraftSituation.Landed]})");
+                }
 
-                //foreach (var sit in (CraftSituation[])Enum.GetValues(typeof(CraftSituation))) charadd.Add(sit, 'X');
 
-                //foreach (var kerbalID in _kerbalLicenses)
-                //    foreach (var part in _simVessel.GetControlOwner()._partOwner._parts.PartsEnumerable)
-                //        foreach (var kerbal in Game.KerbalManager._kerbalRosterManager.GetAllKerbalsInSimObject(part.GlobalId))
-                //            if (kerbal.Location.SimObjectId == part.GlobalId) 
-                //                foreach (var sit in (CraftSituation[])Enum.GetValues(typeof(CraftSituation)))
-                //                    if (_kerbalLicenses[kerbal.Id.ToString()][goal.BodyName].Contains(sit))
-                //                        charadd[sit] = '✓';
-                                    
-                GUILayout.Label($"Landed: {_situationOccurances[goal.BodyName][CraftSituation.Landed]} {Checkmark(CraftSituation.Landed)}");
-                GUILayout.Label($"Low Atmosphere: {_situationOccurances[goal.BodyName][CraftSituation.LowAtmosphere]} {Checkmark(CraftSituation.LowAtmosphere)}");
-                GUILayout.Label($"High Atmosphere: {_situationOccurances[goal.BodyName][CraftSituation.HighAtmosphere]} {Checkmark(CraftSituation.HighAtmosphere)}");
-                GUILayout.Label($"Low Space: {_situationOccurances[goal.BodyName][CraftSituation.LowSpace]} {Checkmark(CraftSituation.LowSpace)}");
-                GUILayout.Label($"High Space: {_situationOccurances[goal.BodyName][CraftSituation.HighSpace]} {Checkmark(CraftSituation.HighSpace)}");
-                GUILayout.Label($"Orbit: {_situationOccurances[goal.BodyName][CraftSituation.Orbit]} {Checkmark(CraftSituation.Orbit)}");
+                //GUILayout.Label($"|-- Landed: {_situationOccurances[goal.BodyName][CraftSituation.Landed]} {Checkmark(CraftSituation.Landed)}");
+                //GUILayout.Label($"|-- Low Atmo: {_situationOccurances[goal.BodyName][CraftSituation.LowAtmosphere]} {Checkmark(CraftSituation.LowAtmosphere)}");
+                //GUILayout.Label($"|-- High Atmo: {_situationOccurances[goal.BodyName][CraftSituation.HighAtmosphere]} {Checkmark(CraftSituation.HighAtmosphere)}");
+                //GUILayout.Label($"|-- Low Space: {_situationOccurances[goal.BodyName][CraftSituation.LowSpace]} {Checkmark(CraftSituation.LowSpace)}");
+                //GUILayout.Label($"|-- High Space: {_situationOccurances[goal.BodyName][CraftSituation.HighSpace]} {Checkmark(CraftSituation.HighSpace)}");
+                //GUILayout.Label($"|-- Orbit: {_situationOccurances[goal.BodyName][CraftSituation.Orbit]} {Checkmark(CraftSituation.Orbit)}");
                 //foreach (var license in _kerbalLicenses)
                 //{
                 //    GUILayout.Label($"license debug data: 1| {license.Key}");
@@ -700,6 +702,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 //    }
                 //}
             }
+            GUILayout.EndScrollView();
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
         }

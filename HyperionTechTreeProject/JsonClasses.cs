@@ -41,7 +41,6 @@ public class Goals
 public class GoalsBody
 {
     [JsonProperty("bodyName")] public string BodyName { get; set; }
-    [JsonProperty("referenceBody")] public string ReferenceBody { get; set; }
     [JsonProperty("spaceThreshold")] public double SpaceThreshold { get; set; }
     [JsonProperty("atmosphereThreshold")] public double AtmosphereThreshold { get; set; }
     [JsonProperty("hasAtmosphere")] public bool HasAtmosphere { get; set; }

@@ -17,15 +17,7 @@ public class KerbalProbeManager
     private static ManualLogSource _logger;
     private static readonly char _s = System.IO.Path.DirectorySeparatorChar;
     
-    private static readonly Dictionary<CraftSituation, string> CraftSituationSpaced = new()
-    {
-        { CraftSituation.Landed, "Landed" },
-        { CraftSituation.LowAtmosphere, "Low Atmosphere" },
-        { CraftSituation.HighAtmosphere, "High Atmosphere" },
-        { CraftSituation.LowSpace, "Low Space" },
-        { CraftSituation.HighSpace, "High Space" },
-        { CraftSituation.Orbit, "Orbit" }
-    };
+    
 
     internal static VesselComponent SimVessel { get; private set; }
     internal static VesselVehicle VesselVehicle { get; private set; }
@@ -89,7 +81,6 @@ public class KerbalProbeManager
             foreach (var part in _allPartsInVessel)
             {
                 _kerfo.AddRange(Game.KerbalManager._kerbalRosterManager.GetAllKerbalsInSimObject(part.GlobalId));
-                _logger.LogInfo(_kerfo.Count);
             }
             return true;
         }
@@ -123,12 +114,9 @@ public class KerbalProbeManager
     /// </summary>
     public static void GenerateSituationOccurances()
     {
-        //_logger.LogInfo(HyperionTechTreePlugin.GoalsList.Count);
         var goals = HyperionTechTreePlugin.GoalsList;
-        //_logger.LogInfo(goals.Count);
         foreach (var goal in goals)
         {
-            //_logger.LogInfo("Found planet " + goal.BodyName);
             _situationOccurances.Add(goal.BodyName, new()
             {
                 { CraftSituation.Landed, 0 },
@@ -159,7 +147,6 @@ public class KerbalProbeManager
             {
                 if (!_kerbalLicenses.ContainsKey(kerbal.Id.ToString()))
                 {
-                    _logger.LogInfo("step4");
                     InstantiateController(kerbal.Id.ToString(), true);
                     //_kerbalLicenses.Add(kerbal.Id.ToString(), new());
                 }
