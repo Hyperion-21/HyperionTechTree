@@ -210,7 +210,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         foreach (var goal in GoalsList)
         {
-            _logger.LogInfo("Found planet " + goal.BodyName);
+            _logger.LogInfo("Found celstial body " + goal.BodyName);
             //_situationOccurances.Add(goal.BodyName, new()
             //{
             //    { CraftSituation.Landed, 0 },
@@ -244,14 +244,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         _awardAmount = 0;
         foreach (var body in GoalsList)
         {
-            _logger.LogInfo($"{body.BodyName} Landed: {body.LandedAward}\n" +
-                $"{body.BodyName} Low Atmo: {body.LowAtmosphereAward}\n" +
-                $"{body.BodyName} High Atmo: {body.HighAtmosphereAward}\n" +
-                $"{body.BodyName} Low Space: {body.LowSpaceAward}\n" +
-                $"{body.BodyName} High Atmo: {body.HighSpaceAward}\n");
-
-
-
             if (body.BodyName != _simVessel.mainBody.bodyName) continue;
 
             if ((int)_simVessel.Situation <= 2 && body.HasSurface)
@@ -268,18 +260,11 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             {
                 _craftSituation = CraftSituation.HighAtmosphere;
                 _awardAmount = (float)(body.HighAtmosphereAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.HighAtmosphere]));
-                _logger.LogInfo("_awardAmount " + _awardAmount);
-                _logger.LogInfo(" body.LowSpaceAward " + body.HighAtmosphereAward);
-                _logger.LogInfo("(double)_situationOccurances[body.BodyName][CraftSituation.HighAtmosphere] " + (double)_situationOccurances[body.BodyName][CraftSituation.HighAtmosphere]);
             }
             else if (!_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel < body.SpaceThreshold)
             {
-                
                 _craftSituation = CraftSituation.LowSpace;
                 _awardAmount = (float)(body.LowSpaceAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.LowSpace]));
-                _logger.LogInfo("_awardAmount " + _awardAmount);
-                _logger.LogInfo(" body.LowSpaceAward " + body.LowSpaceAward);
-                _logger.LogInfo("(double)_situationOccurances[body.BodyName][CraftSituation.LowSpace] " + (double)_situationOccurances[body.BodyName][CraftSituation.LowSpace]);
             }
             else if (!_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel >= body.SpaceThreshold)
             {
@@ -391,23 +376,18 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             GenerateTechs();
             return true;
         }
-
-        _logger.LogInfo(fileName);
         Save deserializedJson = JsonConvert.DeserializeObject<Save>(File.ReadAllText($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{campaignName}{_s}{fileName}"));
         foreach (var pair in _techsObtained.ToList()) _techsObtained[pair.Key] = false;
         foreach (var node in deserializedJson.UnlockedTechs) _techsObtained[node] = true;
-foreach (var situationOccurance in deserializedJson.SituationOccurances)
-{
-    _logger.LogInfo(_situationOccurances.ContainsKey(situationOccurance.BodyName));
-    _logger.LogInfo(_situationOccurances[situationOccurance.BodyName].ContainsKey(CraftSituation.Landed));
-    _situationOccurances[situationOccurance.BodyName][CraftSituation.Landed] = situationOccurance.Landed;
-    _situationOccurances[situationOccurance.BodyName][CraftSituation.LowAtmosphere] = situationOccurance.LowAtmosphere;
-    _situationOccurances[situationOccurance.BodyName][CraftSituation.HighAtmosphere] = situationOccurance.HighAtmosphere;
-    _situationOccurances[situationOccurance.BodyName][CraftSituation.LowSpace] = situationOccurance.LowSpace;
-    _situationOccurances[situationOccurance.BodyName][CraftSituation.HighSpace] = situationOccurance.HighSpace;
-    _situationOccurances[situationOccurance.BodyName][CraftSituation.Orbit] = situationOccurance.Orbit;
-
-}
+        foreach (var situationOccurance in deserializedJson.SituationOccurances)
+        {
+            _situationOccurances[situationOccurance.BodyName][CraftSituation.Landed] = situationOccurance.Landed;
+            _situationOccurances[situationOccurance.BodyName][CraftSituation.LowAtmosphere] = situationOccurance.LowAtmosphere;
+            _situationOccurances[situationOccurance.BodyName][CraftSituation.HighAtmosphere] = situationOccurance.HighAtmosphere;
+            _situationOccurances[situationOccurance.BodyName][CraftSituation.LowSpace] = situationOccurance.LowSpace;
+            _situationOccurances[situationOccurance.BodyName][CraftSituation.HighSpace] = situationOccurance.HighSpace;
+            _situationOccurances[situationOccurance.BodyName][CraftSituation.Orbit] = situationOccurance.Orbit;
+        }
         _techPointBalance = deserializedJson.TechPointBalance;
 
         return true;
@@ -601,13 +581,13 @@ foreach (var situationOccurance in deserializedJson.SituationOccurances)
                             {
                                 skipButtonFlag = true;
                                 //GUI.Label(new Rect(_techTreex1, _techTreey2 + 10 + 20 * (_focusedNode.Dependencies.Count - (j + 1)), 1000, 10000), $"Missing dependency {dependency}!");
-                                GUILayout.Label($"Missing dependency {dependency}!");
+                                GUILayout.Label($"Missing requirement tech: {dependency}!");
                             }
                             if (!_focusedNode.RequiresAll && j == 0)
                             {
                                 skipButtonFlag = true;
                                 //GUI.Label(new Rect(_techTreex1, _techTreey2 + 10, 1000, 10000), "Missing all dependencies!");
-                                GUILayout.Label("Missing all dependencies!");
+                                GUILayout.Label("Missing all requirement techs!");
                             }
                         }
                     }
