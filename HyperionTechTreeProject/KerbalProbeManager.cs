@@ -214,14 +214,22 @@ public class KerbalProbeManager
             {
                 if (kerbal.Location.SimObjectId == part.GlobalId)
                 {
-                    if (_kerbalLicenses[kerbal.Id.ToString()][SimVessel.mainBody.Name].Contains(_craftSituation))
+                    if (_orbitScienceFlag) 
                     {
-                        _logger.LogWarning($"Situation {_craftSituation} already in license of {kerbal.Id}");
+                        _logger.LogInfo($"Situation added to license!\nID: {part.GlobalId}\nKerbal Name: {kerbal.NameKey}\nSituation: Orbit");
+                        _kerbalLicenses[kerbal.Id.ToString()][SimVessel.mainBody.Name].Add(CraftSituation.Orbit);
                     }
                     else
                     {
-                        _logger.LogInfo($"Situation added to license!\nID: {part.GlobalId}\nKerbal Name: {kerbal.NameKey}\nSituation: {_craftSituation}");
-                        _kerbalLicenses[kerbal.Id.ToString()][SimVessel.mainBody.Name].Add(_craftSituation);
+                        if (_kerbalLicenses[kerbal.Id.ToString()][SimVessel.mainBody.Name].Contains(_craftSituation))
+                        {
+                            _logger.LogWarning($"Situation {_craftSituation} already in license of {kerbal.Id}");
+                        }
+                        else
+                        {
+                            _logger.LogInfo($"Situation added to license!\nID: {part.GlobalId}\nKerbal Name: {kerbal.NameKey}\nSituation: {_craftSituation}");
+                            _kerbalLicenses[kerbal.Id.ToString()][SimVessel.mainBody.Name].Add(_craftSituation);
+                        }
                     }
                 }
             }

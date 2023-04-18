@@ -84,10 +84,10 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         { CraftSituation.HighSpace, "High Space" },
         { CraftSituation.Orbit, "Orbit" }
     };
-    protected const float ScienceSecondsOfDelay = 10;
-    protected static float _remainingTime = float.MaxValue;
-    protected static float _awardAmount = 0;
-    private static bool _orbitScienceFlag = false;
+    private const float ScienceSecondsOfDelay = 10;
+    private static float _remainingTime = float.MaxValue;
+    private static float _awardAmount = 0;
+    internal static bool _orbitScienceFlag = false;
 
     internal static CraftSituation _craftSituation = CraftSituation.Landed;
     internal static CraftSituation _craftSituationOld = CraftSituation.Landed;
@@ -230,7 +230,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
     private void Update()
     {
-        _remainingTime -= Time.deltaTime;
+        _remainingTime -= Time.deltaTime * Game.UniverseView.UniverseTime.PhysicsToUniverseMultiplier;
 
         if (Game?.GlobalGameState?.GetState() != GameState.FlightView) return;
 
@@ -242,6 +242,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         _vesselVehicle = KerbalProbeManager.VesselVehicle;
         if (_simVessel == null) return;
 
+        
+
         _awardAmount = 0;
         foreach (var body in GoalsList)
         {
@@ -252,7 +254,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
             
 
-            if (_simVessel.Situation == VesselSituations.Orbiting && _remainingTime > ScienceSecondsOfDelay && !CheckSituationClaimed(CraftSituation.Orbit) && _orbitScienceFlag)
+            if (_simVessel.Situation == VesselSituations.Orbiting && !CheckSituationClaimed(CraftSituation.Orbit) && _orbitScienceFlag)
             {
                 _awardAmount = (float)(body.OrbitAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.Orbit]));
 
@@ -658,14 +660,14 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             }
             GUILayout.EndScrollView();
             GUI.DrawTexture(new Rect(140, 562, 419, 5), GetTextureFromColor(new Color(0f, 0f, 0f, 1f)));
-            if (_remainingTime < 10 && _remainingTime > 0)
+            if (_remainingTime < ScienceSecondsOfDelay && _remainingTime > 0)
             {
                 
                 var roundedTime = Math.Round(_remainingTime, 1).ToString();
                 if (roundedTime.Length == 1) roundedTime += ".0";
 
                 GUI.Label(new Rect(149, 535, 400, 40), $"{roundedTime}s Remaining | {_awardAmount} Tech Points");
-                GUI.DrawTexture(new Rect(140, 562, 419 - (41.9f * _remainingTime), 5), GetTextureFromColor(new Color(1f, 1f, 1f, 1f)));
+                GUI.DrawTexture(new Rect(140, 562, 419 - (419f / ScienceSecondsOfDelay * _remainingTime), 5), GetTextureFromColor(new Color(1f, 1f, 1f, 1f)));
             }
             else
             {
