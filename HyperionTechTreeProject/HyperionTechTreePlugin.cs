@@ -87,6 +87,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     protected const float ScienceSecondsOfDelay = 10;
     protected static float _remainingTime = float.MaxValue;
     protected static float _awardAmount = 0;
+    private static bool _orbitScienceFlag = false;
 
     internal static CraftSituation _craftSituation = CraftSituation.Landed;
     internal static CraftSituation _craftSituationOld = CraftSituation.Landed;
@@ -246,7 +247,17 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         {
             if (body.BodyName != _simVessel.mainBody.bodyName) continue;
 
-            if ((int)_simVessel.Situation <= 2 && body.HasSurface)
+
+
+
+            
+
+            if (_simVessel.Situation == VesselSituations.Orbiting && _remainingTime > ScienceSecondsOfDelay && !CheckSituationClaimed(CraftSituation.Orbit) && _orbitScienceFlag)
+            {
+                _awardAmount = (float)(body.OrbitAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.Orbit]));
+
+            }
+            else if ((int)_simVessel.Situation <= 2 && body.HasSurface)
             {
                 _craftSituation = CraftSituation.Landed;
                 _awardAmount = (float)(body.LandedAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.Landed]));
@@ -271,22 +282,37 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 _craftSituation = CraftSituation.HighSpace;
                 _awardAmount = (float)(body.HighSpaceAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.HighSpace]));
             }
-            //else if (_simVessel.Orbit.peri)
+
+
+            
+
+            
+            
 
             if (_remainingTime < 0)
             {
                 _techPointBalance += _awardAmount;
                 _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Science complete! Gained {_awardAmount} tech points!");
                 _sciradLog.Add($"<color=#00ffff>[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Science complete! Gained {_awardAmount} tech points!</color>");
-                _situationOccurances[_simVessel.mainBody.bodyName][_craftSituation]++; 
+                _situationOccurances[_simVessel.mainBody.bodyName][_orbitScienceFlag ? CraftSituation.Orbit : _craftSituation]++; 
                 _remainingTime = float.MaxValue;
                 AddSituationToLicense();
                 _scrollbarPos1 = new Vector2(0, float.MaxValue);
+                _orbitScienceFlag = false;
             }
 
+            if (_isCraftOrbiting != (_simVessel.Situation == VesselSituations.Orbiting) && !_isCraftOrbiting)
+            {
+                _remainingTime = ScienceSecondsOfDelay;
+                _awardAmount = (float)(body.OrbitAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.Orbit]));
+                _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft entered orbit. Maintain orbit for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft entered orbit. Maintain orbit for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                _scrollbarPos1 = new Vector2(0, float.MaxValue);
+                _orbitScienceFlag = true;
+            }
             if (_craftSituation != _craftSituationOld)
             {
-                if (CheckSituationClaimed())
+                if (CheckSituationClaimed(_craftSituation))
                 {
                     _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {_craftSituationOld}. Going to {_craftSituation}.");
                     _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {_craftSituationOld}. Going to {_craftSituation}.");
@@ -294,7 +320,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 }
                 else
                 {
-                    if (_remainingTime < 10)
+                    if (_remainingTime < ScienceSecondsOfDelay)
                     {
                         _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Previous science interrupted! Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] <color=#ff0000>Previous science interrupted!</color> Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
@@ -311,6 +337,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 }
                 _craftSituationOld = _craftSituation;
             }
+            _isCraftOrbiting = _simVessel.Situation == VesselSituations.Orbiting;
+
         }
     }
 

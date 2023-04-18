@@ -228,13 +228,13 @@ public class KerbalProbeManager
         }
     }
 
-    public static bool CheckSituationClaimed()
+    internal static bool CheckSituationClaimed(CraftSituation sit)
     {
         foreach (var kerbal in _kerbalLicenses)
         {
             foreach (var celes in kerbal.Value)
             {
-                if (_kerbalLicenses[kerbal.Key][celes.Key].Contains(_craftSituation))
+                if (_kerbalLicenses[kerbal.Key][celes.Key].Contains(sit))
                 {
                     return true;
                 }
