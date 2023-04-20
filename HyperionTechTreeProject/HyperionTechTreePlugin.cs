@@ -815,9 +815,9 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         void DrawModInfoWindow()
         {
-            GUILayout.Space(-_windowWidth);
-            GUILayout.BeginHorizontal();
             GUILayout.Space(-_windowHeight);
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(120);
             GUILayout.BeginVertical();
             GUILayout.Label("MOD DEBUG INFO");
             _scrollbarPos3 = GUILayout.BeginScrollView(_scrollbarPos3, GUILayout.Width(400), GUILayout.Height(400));
