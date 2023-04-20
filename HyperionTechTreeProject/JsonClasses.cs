@@ -60,8 +60,7 @@ public class Save
     [JsonProperty("techPointBalance")] public float TechPointBalance { get; set; }
     [JsonProperty("unlockedTechs")] public List<string> UnlockedTechs { get; set; }
     [JsonProperty("situationOccurances")] public List<SituationOccurance> SituationOccurances { get; set; }
-
-
+    [JsonProperty("licenses")] public List<License> Licenses { get; set; }
 }
 
 [JsonObject(MemberSerialization.OptIn)]
@@ -74,6 +73,24 @@ public class SituationOccurance
     [JsonProperty("lowSpace")] public int LowSpace { get; set; }
     [JsonProperty("highSpace")] public int HighSpace { get; set; }
     [JsonProperty("orbit")] public int Orbit { get; set; }
+}
+
+[JsonObject(MemberSerialization.OptIn)]
+public class License
+{
+    [JsonProperty("ID")] public string ID { get; set; }
+    [JsonProperty("bodies")] public List<LicenseBody> Bodies { get; set; }
+}
+
+public class LicenseBody
+{
+    [JsonProperty("bodyName")] public string BodyName { get; set; }
+    [JsonProperty("landed")] public bool Landed { get; set; }
+    [JsonProperty("lowAtmosphere")] public bool LowAtmosphere { get; set; }
+    [JsonProperty("highAtmosphere")] public bool HighAtmosphere { get; set; }
+    [JsonProperty("lowSpace")] public bool LowSpace { get; set; }
+    [JsonProperty("highSpace")] public bool HighSpace { get; set; }
+    [JsonProperty("orbit")] public bool Orbit { get; set; }
 }
 
 [JsonObject(MemberSerialization.OptIn)]

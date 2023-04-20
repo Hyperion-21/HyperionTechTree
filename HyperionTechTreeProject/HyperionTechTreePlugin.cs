@@ -19,6 +19,7 @@ using KSP.UI;
 using KSP.Iteration.UI.Binding;
 using static KSP.Api.UIDataPropertyStrings.View.Vessel.Stages;
 using static HyperionTechTree.KerbalProbeManager;
+using System.Linq.Expressions;
 
 namespace HyperionTechTree;
 
@@ -48,12 +49,14 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static float _techTreey2 = -10000;
     private static Vector2 _scrollbarPos1 = Vector2.zero;
     private static Vector2 _scrollbarPos2 = Vector2.zero;
+    private static Vector2 _scrollbarPos3 = Vector2.zero;
     private static List<string> _sciradLog = new();
     private static Dictionary<string, bool> _collapsableList = new();
     private enum WindowTabs
     {
         TechTree,
-        Goals
+        Goals,
+        ModInfo
     }
     private static WindowTabs _windowTab = WindowTabs.TechTree;
 
@@ -230,7 +233,15 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
     private void Update()
     {
-        _remainingTime -= Time.deltaTime * Game.UniverseView.UniverseTime.PhysicsToUniverseMultiplier;
+        try
+        {
+            _remainingTime -= Time.deltaTime * Game.UniverseView.UniverseTime.PhysicsToUniverseMultiplier;
+        } 
+        catch 
+        {
+            _remainingTime -= Time.deltaTime;
+        }
+        
 
         if (Game?.GlobalGameState?.GetState() != GameState.FlightView) return;
 
@@ -359,6 +370,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     [HarmonyPrefix]
     private static bool SaveGameToFile(string filepath, SavedGameType savedGameType, bool saveOverwriteFileIfExists, OnLoadOrSaveCampaignFinishedCallback onLoadOrSaveCampaignFinishedCallback, SaveLoadManager __instance)
     {
+        
         string modSavePath = filepath.Substring(filepath.LastIndexOf("Saves"));
         Save save = new();
         save.ModVersion = MyPluginInfo.PLUGIN_VERSION;
@@ -370,17 +382,49 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         foreach (var body in GoalsList)
         {
-            SituationOccurance situationOccurance = new();
-            situationOccurance.BodyName = body.BodyName;
-            situationOccurance.Landed = _situationOccurances[body.BodyName][CraftSituation.Landed];
-            situationOccurance.LowAtmosphere = _situationOccurances[body.BodyName][CraftSituation.LowAtmosphere];
-            situationOccurance.HighAtmosphere = _situationOccurances[body.BodyName][CraftSituation.HighAtmosphere];
-            situationOccurance.LowSpace = _situationOccurances[body.BodyName][CraftSituation.LowSpace];
-            situationOccurance.HighSpace = _situationOccurances[body.BodyName][CraftSituation.HighSpace];
-            situationOccurance.Orbit = _situationOccurances[body.BodyName][CraftSituation.Orbit];
-            save.SituationOccurances.Add(situationOccurance);
+            
+            save.SituationOccurances.Add(new()
+            {
+                BodyName = body.BodyName,
+                Landed = _situationOccurances[body.BodyName][CraftSituation.Landed],
+                LowAtmosphere = _situationOccurances[body.BodyName][CraftSituation.LowAtmosphere],
+                HighAtmosphere = _situationOccurances[body.BodyName][CraftSituation.HighAtmosphere],
+                LowSpace = _situationOccurances[body.BodyName][CraftSituation.LowSpace],
+                HighSpace = _situationOccurances[body.BodyName][CraftSituation.HighSpace],
+                Orbit = _situationOccurances[body.BodyName][CraftSituation.Orbit]
+            });
 
         }
+
+        save.Licenses = new();
+
+        foreach (var kerbal in _kerbalLicenses)
+        {
+            List<LicenseBody> licenseBodies = new();
+            foreach (var body in kerbal.Value)
+            {
+                licenseBodies.Add(new()
+                {
+                    BodyName = body.Key,
+                    Landed = body.Value.Contains(CraftSituation.Landed),
+                    LowAtmosphere = body.Value.Contains(CraftSituation.LowAtmosphere),
+                    HighAtmosphere = body.Value.Contains(CraftSituation.HighAtmosphere),
+                    LowSpace = body.Value.Contains(CraftSituation.LowSpace),
+                    HighSpace = body.Value.Contains(CraftSituation.HighSpace),
+                    Orbit = body.Value.Contains(CraftSituation.Orbit)
+                });
+                _logger.LogInfo("body.key: " + body.Key);
+                _logger.LogInfo("body.Value.Contains(CraftSituation.Landed): " + body.Value.Contains(CraftSituation.Landed));
+            }
+            _logger.LogInfo("kerbal.Key: " + kerbal.Key);
+            _logger.LogInfo("licenseBodies: " + licenseBodies);
+            save.Licenses.Add(new()
+            {
+                ID = kerbal.Key,
+                Bodies = licenseBodies
+            });
+        }
+
 
         var campaignName = Game.SaveLoadManager.ActiveCampaignFolderPath.Substring(Game.SaveLoadManager.ActiveCampaignFolderPath.LastIndexOf(_s) + 1);
         var fileName = filepath.Substring(filepath.LastIndexOf(_s) + 1);
@@ -444,10 +488,19 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 _windowWidth = _techTreex2 + 650;
                 _windowHeight = _techTreey2;
             }
-            else
+            else if (_windowTab == WindowTabs.Goals)
             {
                 _windowWidth = 560;
                 _windowHeight = 575;
+            }
+            else if (_windowTab == WindowTabs.ModInfo)
+            {
+                _windowWidth = 500;
+                _windowHeight = 500;
+            }
+            else
+            {
+                _logger.LogError("_windowTab is not set to a valid tab! If you're reading this, please report this bug!");
             }
 
             _windowRect = GUILayout.Window(
@@ -479,7 +532,9 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         if (GUI.Button(new Rect(10, 45, 100, 25), "Tech Tree")) _windowTab = WindowTabs.TechTree;
         GUI.backgroundColor = (_windowTab == WindowTabs.Goals) ? Color.yellow : Color.blue;
         if (GUI.Button(new Rect(10, 80, 100, 25), "Goals")) _windowTab = WindowTabs.Goals;
-
+        GUI.backgroundColor = (_windowTab == WindowTabs.ModInfo) ? Color.yellow : Color.blue;
+        if (GUI.Button(new Rect(10, 115, 100, 25), "Mod Info")) _windowTab = WindowTabs.ModInfo;
+        
         GUI.backgroundColor = Color.red;
         if (GUI.Button(new Rect(_windowWidth - 10, 10, 20, 20), "X")) _isWindowOpen = false;
 
@@ -490,6 +545,9 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 break;
             case WindowTabs.Goals:
                 DrawGoalsWindow();
+                break;
+            case WindowTabs.ModInfo:
+                DrawModInfoWindow(); 
                 break;
             default:
                 GUI.Label(new Rect(150, 150, 150, 150), "ERROR: Couldn't find tab!");
@@ -721,6 +779,32 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 //}
             }
             GUILayout.EndScrollView();
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+        }
+
+        void DrawModInfoWindow()
+        {
+            GUILayout.Space(50);
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(-_windowHeight + 200);
+            GUILayout.BeginVertical();
+            GUILayout.Label("MOD DEBUG INFO");
+            _scrollbarPos3 = GUILayout.BeginScrollView(_scrollbarPos3, GUILayout.Width(400), GUILayout.Height(400));
+            GUILayout.Label("-----");
+            foreach (var license in _kerbalLicenses)
+            {
+                GUILayout.Label("Kerbal: " + license.Key);
+                foreach (var body in license.Value)
+                {
+                    GUILayout.Label("Body name: " + body.Key);
+                    foreach (var sit in body.Value)
+                    {
+                        GUILayout.Label("Sit: " + sit.ToString());
+                    }
+                }
+                GUILayout.Label("-----");
+            }
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
         }

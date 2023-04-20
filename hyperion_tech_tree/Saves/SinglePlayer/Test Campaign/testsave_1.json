@@ -14,5 +14,22 @@
             "highSpace": 0,
             "orbit": 0
         }
+    ],
+    "licenses": [
+        {
+            "ID": "12345-67890",
+            "bodies": [
+                {
+                    "bodyName": "Kerbin",
+                    "landed": false,
+                    "lowAtmosphere": false,
+                    "highAtmosphere": false,
+                    "lowSpace": false,
+                    "highSpace": false,
+                    "orbit": false
+                }
+            ]
+            
+        }
     ]
 }

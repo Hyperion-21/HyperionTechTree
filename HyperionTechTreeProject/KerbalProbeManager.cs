@@ -27,7 +27,9 @@ public class KerbalProbeManager
 
     private static PartComponentModule_Command _module = new();
     private static List<KerbalInfo> _kerfo = new();
-    private static Dictionary<string, Dictionary<string, List<CraftSituation>>> _kerbalLicenses = new();
+
+    // PRIVATE THIS LATER
+    internal static Dictionary<string, Dictionary<string, List<CraftSituation>>> _kerbalLicenses = new();
 
     private static Dictionary<string, Dictionary<string, List<CraftSituation>>> _probeLicenses = new();
 
