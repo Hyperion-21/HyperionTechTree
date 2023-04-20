@@ -327,8 +327,9 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             {
                 if (CheckSituationClaimed(_craftSituation))
                 {
-                    _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {_craftSituationOld}. Going to {_craftSituation}.");
-                    _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {_craftSituationOld}. Going to {_craftSituation}.");
+                    _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {CraftSituationSpaced[_craftSituationOld]}. Going to {CraftSituationSpaced[_craftSituation]}.");
+                    _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {CraftSituationSpaced[_craftSituationOld]}. Going to {CraftSituationSpaced[_craftSituation]}.");
+                    _remainingTime = float.MaxValue;
                     _scrollbarPos1 = new Vector2(0, float.MaxValue);
                 }
                 else
@@ -341,8 +342,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                     }
                     else
                     {
-                        _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
-                        _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {_craftSituationOld} to {_craftSituation}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                        _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {CraftSituationSpaced[_craftSituationOld]} to {CraftSituationSpaced[_craftSituation]}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                        _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {CraftSituationSpaced[_craftSituationOld]} to {CraftSituationSpaced[_craftSituation]}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _scrollbarPos1 = new Vector2(0, float.MaxValue);
                     }
                     _remainingTime = ScienceSecondsOfDelay;
@@ -425,6 +426,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             });
         }
 
+        save.ActiveVesselSituation = _craftSituation.ToString();
+
 
         var campaignName = Game.SaveLoadManager.ActiveCampaignFolderPath.Substring(Game.SaveLoadManager.ActiveCampaignFolderPath.LastIndexOf(_s) + 1);
         var fileName = filepath.Substring(filepath.LastIndexOf(_s) + 1);
@@ -463,6 +466,33 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             _situationOccurances[situationOccurance.BodyName][CraftSituation.Orbit] = situationOccurance.Orbit;
         }
         _techPointBalance = deserializedJson.TechPointBalance;
+
+        _kerbalLicenses.Clear();
+        _logger.LogInfo(deserializedJson);
+        _logger.LogInfo(deserializedJson.Licenses);
+        foreach (var license in deserializedJson.Licenses)
+        {
+            Dictionary<string, List<CraftSituation>> subdict = new();
+
+            foreach (var body in license.Bodies)
+            {
+                List<CraftSituation> sublist = new();
+                if (body.Landed) sublist.Add(CraftSituation.Landed);
+                if (body.LowAtmosphere) sublist.Add(CraftSituation.LowAtmosphere);
+                if (body.HighAtmosphere) sublist.Add(CraftSituation.HighAtmosphere);
+                if (body.LowSpace) sublist.Add(CraftSituation.LowSpace);
+                if (body.HighSpace) sublist.Add(CraftSituation.HighSpace);
+                if (body.Orbit) sublist.Add(CraftSituation.Orbit);
+                subdict.Add(body.BodyName, sublist);
+            }
+
+            _kerbalLicenses.Add(license.ID, subdict);
+        }
+        _logger.LogInfo("AAAAA - " + Enum.Parse(typeof(CraftSituation), deserializedJson.ActiveVesselSituation).ToString());
+        _craftSituation = (CraftSituation)Enum.Parse(typeof(CraftSituation), deserializedJson.ActiveVesselSituation);
+        _craftSituationOld = _craftSituation;
+        
+        _sciradLog.Add("--- LOADING SAVE ---");
 
         return true;
     }
@@ -785,9 +815,9 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         void DrawModInfoWindow()
         {
-            GUILayout.Space(50);
+            GUILayout.Space(-_windowWidth);
             GUILayout.BeginHorizontal();
-            GUILayout.Space(-_windowHeight + 200);
+            GUILayout.Space(-_windowHeight);
             GUILayout.BeginVertical();
             GUILayout.Label("MOD DEBUG INFO");
             _scrollbarPos3 = GUILayout.BeginScrollView(_scrollbarPos3, GUILayout.Width(400), GUILayout.Height(400));
@@ -805,6 +835,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 }
                 GUILayout.Label("-----");
             }
+            GUILayout.EndScrollView();
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
         }

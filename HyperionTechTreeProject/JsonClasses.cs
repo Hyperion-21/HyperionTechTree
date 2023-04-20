@@ -61,6 +61,7 @@ public class Save
     [JsonProperty("unlockedTechs")] public List<string> UnlockedTechs { get; set; }
     [JsonProperty("situationOccurances")] public List<SituationOccurance> SituationOccurances { get; set; }
     [JsonProperty("licenses")] public List<License> Licenses { get; set; }
+    [JsonProperty("activeVesselSituation")] public string ActiveVesselSituation { get; set; }
 }
 
 [JsonObject(MemberSerialization.OptIn)]
