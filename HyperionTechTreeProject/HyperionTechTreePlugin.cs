@@ -20,6 +20,7 @@ using KSP.Iteration.UI.Binding;
 using static KSP.Api.UIDataPropertyStrings.View.Vessel.Stages;
 using static HyperionTechTree.KerbalProbeManager;
 using System.Linq.Expressions;
+using KSP.Messages;
 
 namespace HyperionTechTree;
 
@@ -227,8 +228,21 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             
         }
 
-        
-
+        Game.Messages.Subscribe<RevertToLaunchMessage>(msg =>
+        {
+            var message = (RevertToLaunchMessage)msg;
+            _logger.LogInfo("Launch: " + message.ToString());
+        });
+        Game.Messages.Subscribe<VehicleRevertedToOABMessage>(msg =>
+        {
+            var message = (VehicleRevertedToOABMessage)msg;
+            _logger.LogInfo("OAB: " + message.ToString());
+        });
+        Game.Messages.Subscribe<VehicleRevertCompleteMessage>(msg =>
+        {
+            var message = (VehicleRevertCompleteMessage)msg;
+            _logger.LogInfo("Completed Revert: " + message.ToString());
+        });
     }
 
     private void Update()
