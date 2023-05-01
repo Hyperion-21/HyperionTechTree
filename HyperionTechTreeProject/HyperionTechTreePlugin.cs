@@ -21,6 +21,7 @@ using static KSP.Api.UIDataPropertyStrings.View.Vessel.Stages;
 using static HyperionTechTree.KerbalProbeManager;
 using System.Linq.Expressions;
 using KSP.Messages;
+using Game.Data;
 
 namespace HyperionTechTree;
 
@@ -104,6 +105,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     //private static Dictionary<string, List<string>> _scienceLicenses = new();
 
     private static VesselComponent _simVessel;
+    private static VesselComponent _simVesselOld;
     private static VesselVehicle _vesselVehicle;
 
     private static Texture2D _tex = new(1, 1);
@@ -230,20 +232,42 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         Game.Messages.Subscribe<RevertToLaunchMessage>(msg =>
         {
-            var message = (RevertToLaunchMessage)msg;
-            _logger.LogInfo("Launch: " + message.ToString());
+            _sciradLog.Add("<color=#ffff00>HTT currently does not handle reverting to VAB or launchpad! Things may have gone wrong. For now, please create and load quicksaves while in the VAB and before launches.</color>");
         });
-        Game.Messages.Subscribe<VehicleRevertedToOABMessage>(msg =>
+        Game.Messages.Subscribe<VehicleRevertedToOABMessage>(_ =>
         {
-            var message = (VehicleRevertedToOABMessage)msg;
-            _logger.LogInfo("OAB: " + message.ToString());
-        });
-        Game.Messages.Subscribe<VehicleRevertCompleteMessage>(msg =>
-        {
-            var message = (VehicleRevertCompleteMessage)msg;
-            _logger.LogInfo("Completed Revert: " + message.ToString());
+            _sciradLog.Add("<color=#ffff00>HTT currently does not handle reverting to VAB or launchpad! Things may have gone wrong. For now, please create and load quicksaves while in the VAB and before launches.</color>");
         });
     }
+
+    //[HarmonyPatch(typeof(StateReversionTracker), nameof(StateReversionTracker.OnVesselCreated))]
+    //[HarmonyPostfix]
+    //private static void OnVesselCreated(MessageCenterMessage msg, StateReversionTracker __instance)
+    //{
+    //    _logger.LogInfo("ON VESSEL CREATED!!!!!");
+    //    _logger.LogInfo(msg);
+    //    VesselCreatedMessage message = (VesselCreatedMessage)msg;
+    //    _logger.LogInfo(message.SerializedVessel.Guid);
+    //    //_logger.LogInfo(message.ToString());
+    //    //_logger.LogInfo(message.vehicle);
+    //    //_logger.LogInfo(message.SerializedVessel);
+    //    //_logger.LogInfo(message.serializedLocation);
+    //    //_logger.LogInfo(message.vehicle.ToString());
+    //    //_logger.LogInfo(message.vehicle.GetSimVessel());
+    //    //_logger.LogInfo(message.vehicle.GetSimVessel().Guid);
+    //}
+
+
+    //[HarmonyPatch(typeof(StateReversionTracker), nameof(StateReversionTracker.DelayedStateSave))]
+    //[HarmonyPostfix]
+    //private static void DelayedStateSave(StateReversionTracker __instance)
+    //{
+    //    //var save = CreateSave();
+    //    _logger.LogInfo("DELAYED STATE SAVE!!!!!");
+    //    if (_simVessel == null) return;
+    //    _logger.LogInfo(_simVessel.Name);
+    //    _logger.LogInfo(_simVessel.GlobalId);
+    //}
 
     private void Update()
     {
@@ -255,29 +279,21 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         {
             _remainingTime -= Time.deltaTime;
         }
-        
+
 
         if (Game?.GlobalGameState?.GetState() != GameState.FlightView) return;
 
         UpdateKPM();
         GenerateLicenses();
 
-
         _simVessel = SimVessel;
         _vesselVehicle = KerbalProbeManager.VesselVehicle;
         if (_simVessel == null) return;
-
         
-
         _awardAmount = 0;
         foreach (var body in GoalsList)
         {
             if (body.BodyName != _simVessel.mainBody.bodyName) continue;
-
-
-
-
-            
 
             if (_simVessel.Situation == VesselSituations.Orbiting && !CheckSituationClaimed(CraftSituation.Orbit) && _orbitScienceFlag)
             {
@@ -309,12 +325,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 _craftSituation = CraftSituation.HighSpace;
                 _awardAmount = (float)(body.HighSpaceAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.HighSpace]));
             }
-
-
-            
-
-            
-            
 
             if (_remainingTime < 0)
             {
@@ -383,10 +393,20 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     /// <returns></returns>
     [HarmonyPatch(typeof(SaveLoadManager), nameof(SaveLoadManager.SaveGameToFile))]
     [HarmonyPrefix]
-    private static bool SaveGameToFile(string filepath, SavedGameType savedGameType, bool saveOverwriteFileIfExists, OnLoadOrSaveCampaignFinishedCallback onLoadOrSaveCampaignFinishedCallback, SaveLoadManager __instance)
+    private static bool SaveGameToFile(string filepath)
     {
-        
-        string modSavePath = filepath.Substring(filepath.LastIndexOf("Saves"));
+        var campaignName = Game.SaveLoadManager.ActiveCampaignFolderPath.Substring(Game.SaveLoadManager.ActiveCampaignFolderPath.LastIndexOf(_s) + 1);
+        var fileName = filepath.Substring(filepath.LastIndexOf(_s) + 1);
+        //if (!Directory.Exists($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{Game.SaveLoadManager.ActiveCampaignFolderPath}")) 
+        Directory.CreateDirectory($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{campaignName}");
+        var serializedJson = JsonConvert.SerializeObject(CreateSave());
+        File.WriteAllText($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{campaignName}{_s}{fileName}", serializedJson);
+
+        return true;
+    }
+
+    private static Save CreateSave()
+    {
         Save save = new();
         save.ModVersion = MyPluginInfo.PLUGIN_VERSION;
         save.TechPointBalance = _techPointBalance;
@@ -397,7 +417,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         foreach (var body in GoalsList)
         {
-            
+
             save.SituationOccurances.Add(new()
             {
                 BodyName = body.BodyName,
@@ -442,15 +462,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         save.ActiveVesselSituation = _craftSituation.ToString();
 
-
-        var campaignName = Game.SaveLoadManager.ActiveCampaignFolderPath.Substring(Game.SaveLoadManager.ActiveCampaignFolderPath.LastIndexOf(_s) + 1);
-        var fileName = filepath.Substring(filepath.LastIndexOf(_s) + 1);
-        //if (!Directory.Exists($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{Game.SaveLoadManager.ActiveCampaignFolderPath}")) 
-        Directory.CreateDirectory($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{campaignName}");
-        var serializedJson = JsonConvert.SerializeObject(save);
-        File.WriteAllText($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{campaignName}{_s}{fileName}", serializedJson);
-
-        return true;
+        return save;
     }
 
     [HarmonyPatch(typeof(SaveLoadManager), nameof(SaveLoadManager.LoadGameFromFile))]

@@ -62,6 +62,7 @@ public class Save
     [JsonProperty("situationOccurances")] public List<SituationOccurance> SituationOccurances { get; set; }
     [JsonProperty("licenses")] public List<License> Licenses { get; set; }
     [JsonProperty("activeVesselSituation")] public string ActiveVesselSituation { get; set; }
+    [JsonProperty("revertSaves")] public List<Save> RevertSaves { get; set; }
 }
 
 [JsonObject(MemberSerialization.OptIn)]
