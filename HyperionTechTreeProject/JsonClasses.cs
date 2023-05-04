@@ -60,9 +60,9 @@ public class Save
     [JsonProperty("techPointBalance")] public float TechPointBalance { get; set; }
     [JsonProperty("unlockedTechs")] public List<string> UnlockedTechs { get; set; }
     [JsonProperty("situationOccurances")] public List<SituationOccurance> SituationOccurances { get; set; }
-    [JsonProperty("licenses")] public List<License> Licenses { get; set; }
+    [JsonProperty("kerbalLicenses")] public List<License> KerbalLicenses { get; set; }
+    [JsonProperty("probeLicenses")] public List<License> ProbeLicenses { get; set; }
     [JsonProperty("activeVesselSituation")] public string ActiveVesselSituation { get; set; }
-    [JsonProperty("revertSaves")] public List<Save> RevertSaves { get; set; }
 }
 
 [JsonObject(MemberSerialization.OptIn)]

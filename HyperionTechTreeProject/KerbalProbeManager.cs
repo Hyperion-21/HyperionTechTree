@@ -237,6 +237,33 @@ public class KerbalProbeManager
                 }
             }
         }
+
+        foreach (var part in _allPartsInVessel)
+        {
+            foreach (var probe in _probeLicenses)
+            {
+                if (part.GlobalId.ToString() == probe.Key)
+                {
+                    if (_orbitScienceFlag)
+                    {
+                        _logger.LogInfo($"Situation added to license!\nID: {part.GlobalId}\nProbe Name: {part.DisplayName}\nSituation: Orbit");
+                        _probeLicenses[part.GlobalId.ToString()][SimVessel.mainBody.Name].Add(CraftSituation.Orbit);
+                    }
+                    else
+                    {
+                        if (_probeLicenses[part.GlobalId.ToString()][SimVessel.mainBody.Name].Contains(_craftSituation))
+                        {
+                            _logger.LogWarning($"Situation {_craftSituation} already in license of {part.GlobalId}");
+                        }
+                        else
+                        {
+                            _logger.LogInfo($"Situation added to license!\nID: {part.GlobalId}\nProbe Name: {part.DisplayName}\nSituation: {_craftSituation}");
+                            _probeLicenses[part.GlobalId.ToString()][SimVessel.mainBody.Name].Add(_craftSituation);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     internal static bool CheckSituationClaimed(CraftSituation sit)
@@ -251,6 +278,16 @@ public class KerbalProbeManager
                 }
             }
         }
+        foreach (var probe in _probeLicenses)
+        {
+            foreach (var celes in probe.Value)
+            {
+                if (_probeLicenses[probe.Key][celes.Key].Contains(sit))
+                {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -258,11 +295,17 @@ public class KerbalProbeManager
     internal static char Checkmark(CraftSituation sit, string currentBody)
     {
         if (Game?.GlobalGameState?.GetState() != GameState.FlightView) return ' ';
-            foreach (var part in SimVessel.GetControlOwner()._partOwner._parts.PartsEnumerable)
-                foreach (var kerbal in Game.KerbalManager._kerbalRosterManager.GetAllKerbalsInSimObject(part.GlobalId))
-                    if (kerbal.Location.SimObjectId == part.GlobalId)
-                        if (_kerbalLicenses[kerbal.Id.ToString()][currentBody].Contains(sit))
-                            return '✓';
+        foreach (var part in SimVessel.GetControlOwner()._partOwner._parts.PartsEnumerable)
+        {
+            foreach (var kerbal in Game.KerbalManager._kerbalRosterManager.GetAllKerbalsInSimObject(part.GlobalId))
+                if (kerbal.Location.SimObjectId == part.GlobalId)
+                    if (_kerbalLicenses[kerbal.Id.ToString()][currentBody].Contains(sit))
+                        return '✓';
+            foreach (var probe in _probeLicenses)
+                if (part.GlobalId.ToString() == probe.Key)
+                    if (_probeLicenses[part.GlobalId.ToString()][currentBody].Contains(sit))
+                        return '✓';
+        }
         return 'X';
     }
 }

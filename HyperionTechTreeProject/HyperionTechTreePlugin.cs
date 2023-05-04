@@ -122,7 +122,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     internal static List<GoalsBody> GoalsList = new();
 
 
-    private static float _techPointBalance = 100000;
+    private static float _techPointBalance = 0;
 
     private static TechTreeNode _focusedNode = null;
 
@@ -293,6 +293,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         _awardAmount = 0;
         foreach (var body in GoalsList)
         {
+            //_logger.LogInfo("Flag 1");
             if (body.BodyName != _simVessel.mainBody.bodyName) continue;
 
             if (_simVessel.Situation == VesselSituations.Orbiting && !CheckSituationClaimed(CraftSituation.Orbit) && _orbitScienceFlag)
@@ -328,6 +329,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
             if (_remainingTime < 0)
             {
+                //_logger.LogInfo("Flag 2");
                 _techPointBalance += _awardAmount;
                 _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Science complete! Gained {_awardAmount} tech points!");
                 _sciradLog.Add($"<color=#00ffff>[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Science complete! Gained {_awardAmount} tech points!</color>");
@@ -338,8 +340,10 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 _orbitScienceFlag = false;
             }
 
+            //_logger.LogInfo("Flag 3");
             if (_isCraftOrbiting != (_simVessel.Situation == VesselSituations.Orbiting) && !_isCraftOrbiting)
             {
+                //_logger.LogInfo("Flag 4");
                 _remainingTime = ScienceSecondsOfDelay;
                 _awardAmount = (float)(body.OrbitAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.Orbit]));
                 _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft entered orbit. Maintain orbit for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
@@ -349,8 +353,10 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             }
             if (_craftSituation != _craftSituationOld)
             {
+                //_logger.LogInfo("Flag 5");
                 if (CheckSituationClaimed(_craftSituation))
                 {
+                    //_logger.LogInfo("Flag 6");
                     _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {CraftSituationSpaced[_craftSituationOld]}. Going to {CraftSituationSpaced[_craftSituation]}.");
                     _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {CraftSituationSpaced[_craftSituationOld]}. Going to {CraftSituationSpaced[_craftSituation]}.");
                     _remainingTime = float.MaxValue;
@@ -358,14 +364,17 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 }
                 else
                 {
+                    //_logger.LogInfo("Flag 7");
                     if (_remainingTime < ScienceSecondsOfDelay)
                     {
+                        //_logger.LogInfo("Flag 8");
                         _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Previous science interrupted! Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] <color=#ff0000>Previous science interrupted!</color> Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _scrollbarPos1 = new Vector2(0, float.MaxValue);
                     }
                     else
                     {
+                        //_logger.LogInfo("Flag 9");
                         _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {CraftSituationSpaced[_craftSituationOld]} to {CraftSituationSpaced[_craftSituation]}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {CraftSituationSpaced[_craftSituationOld]} to {CraftSituationSpaced[_craftSituation]}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _scrollbarPos1 = new Vector2(0, float.MaxValue);
@@ -373,11 +382,22 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                     _remainingTime = ScienceSecondsOfDelay;
                     
                 }
-                _craftSituationOld = _craftSituation;
+                
             }
+            _craftSituationOld = _craftSituation;
             _isCraftOrbiting = _simVessel.Situation == VesselSituations.Orbiting;
 
         }
+
+        //_logger.LogInfo(_remainingTime.ToString());
+        //_logger.LogInfo(_simVessel);
+        //_logger.LogInfo(GoalsList[0]);
+        //_logger.LogInfo(_simVessel.mainBody.Name);
+        //_logger.LogInfo(_simVessel.Situation);
+        //_logger.LogInfo(_craftSituation);
+        //_logger.LogInfo(_awardAmount);
+        //_logger.LogInfo(CheckSituationClaimed(_craftSituation));
+        //_logger.LogInfo("-----");
     }
 
     
@@ -431,7 +451,9 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         }
 
-        save.Licenses = new();
+        save.KerbalLicenses = new();
+        save.ProbeLicenses = new();
+
 
         foreach (var kerbal in _kerbalLicenses)
         {
@@ -453,12 +475,39 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             }
             _logger.LogInfo("kerbal.Key: " + kerbal.Key);
             _logger.LogInfo("licenseBodies: " + licenseBodies);
-            save.Licenses.Add(new()
+            save.KerbalLicenses.Add(new()
             {
                 ID = kerbal.Key,
                 Bodies = licenseBodies
             });
         }
+        foreach (var probe in _probeLicenses)
+        {
+            List<LicenseBody> licenseBodies = new();
+            foreach (var body in probe.Value)
+            {
+                licenseBodies.Add(new()
+                {
+                    BodyName = body.Key,
+                    Landed = body.Value.Contains(CraftSituation.Landed),
+                    LowAtmosphere = body.Value.Contains(CraftSituation.LowAtmosphere),
+                    HighAtmosphere = body.Value.Contains(CraftSituation.HighAtmosphere),
+                    LowSpace = body.Value.Contains(CraftSituation.LowSpace),
+                    HighSpace = body.Value.Contains(CraftSituation.HighSpace),
+                    Orbit = body.Value.Contains(CraftSituation.Orbit)
+                });
+                _logger.LogInfo("body.key: " + body.Key);
+                _logger.LogInfo("body.Value.Contains(CraftSituation.Landed): " + body.Value.Contains(CraftSituation.Landed));
+            }
+            _logger.LogInfo("kerbal.Key: " + probe.Key);
+            _logger.LogInfo("licenseBodies: " + licenseBodies);
+            save.ProbeLicenses.Add(new()
+            {
+                ID = probe.Key,
+                Bodies = licenseBodies
+            });
+        }
+
 
         save.ActiveVesselSituation = _craftSituation.ToString();
 
@@ -494,9 +543,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         _techPointBalance = deserializedJson.TechPointBalance;
 
         _kerbalLicenses.Clear();
-        _logger.LogInfo(deserializedJson);
-        _logger.LogInfo(deserializedJson.Licenses);
-        foreach (var license in deserializedJson.Licenses)
+        _probeLicenses.Clear();
+        foreach (var license in deserializedJson.KerbalLicenses)
         {
             Dictionary<string, List<CraftSituation>> subdict = new();
 
@@ -514,7 +562,24 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
             _kerbalLicenses.Add(license.ID, subdict);
         }
-        _logger.LogInfo("AAAAA - " + Enum.Parse(typeof(CraftSituation), deserializedJson.ActiveVesselSituation).ToString());
+        foreach (var license in deserializedJson.ProbeLicenses)
+        {
+            Dictionary<string, List<CraftSituation>> subdict = new();
+
+            foreach (var body in license.Bodies)
+            {
+                List<CraftSituation> sublist = new();
+                if (body.Landed) sublist.Add(CraftSituation.Landed);
+                if (body.LowAtmosphere) sublist.Add(CraftSituation.LowAtmosphere);
+                if (body.HighAtmosphere) sublist.Add(CraftSituation.HighAtmosphere);
+                if (body.LowSpace) sublist.Add(CraftSituation.LowSpace);
+                if (body.HighSpace) sublist.Add(CraftSituation.HighSpace);
+                if (body.Orbit) sublist.Add(CraftSituation.Orbit);
+                subdict.Add(body.BodyName, sublist);
+            }
+
+            _probeLicenses.Add(license.ID, subdict);
+        }
         _craftSituation = (CraftSituation)Enum.Parse(typeof(CraftSituation), deserializedJson.ActiveVesselSituation);
         _craftSituationOld = _craftSituation;
         
@@ -851,6 +916,19 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             foreach (var license in _kerbalLicenses)
             {
                 GUILayout.Label("Kerbal: " + license.Key);
+                foreach (var body in license.Value)
+                {
+                    GUILayout.Label("Body name: " + body.Key);
+                    foreach (var sit in body.Value)
+                    {
+                        GUILayout.Label("Sit: " + sit.ToString());
+                    }
+                }
+                GUILayout.Label("-----");
+            }
+            foreach (var license in _probeLicenses)
+            {
+                GUILayout.Label("Probe: " + license.Key);
                 foreach (var body in license.Value)
                 {
                     GUILayout.Label("Body name: " + body.Key);
