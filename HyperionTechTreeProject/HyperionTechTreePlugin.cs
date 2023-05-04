@@ -145,6 +145,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     internal static ManualLogSource HLogger;
     private static ManualLogSource _logger;
     private static bool _disableMod = false;
+    private static bool _infiniteTech = false;
     internal static string Path = PluginFolderPathStatic;
 
     public static HyperionTechTreePlugin Instance { get; set; }
@@ -172,6 +173,11 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 "HTT will be disabled for this game session! Restart the game to reenable!\n" +
                 "/////////////////////////////////////////////////////////////////////////\n");
             return;
+        }
+        if (Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.O))
+        {
+            _infiniteTech = true;
+            _logger.LogInfo("Infinite tech points cheat code activated!");
         }
 
         _path = PluginFolderPath;
@@ -272,6 +278,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
     private void Update()
     {
+        if (_infiniteTech) _techPointBalance = 999999;
+
         try
         {
             _remainingTime -= Time.deltaTime * Game.UniverseView.UniverseTime.PhysicsToUniverseMultiplier;

@@ -6,6 +6,7 @@ using BepInEx;
 using Newtonsoft.Json;
 using static HyperionTechTree.HyperionTechTreePlugin;
 using KSP.Messages;
+using KSP.Iteration.UI.Binding;
 
 namespace HyperionTechTree;
 
@@ -48,21 +49,36 @@ public class KerbalProbeManager
 
         Game.Messages.Subscribe<VesselRecoveredMessage>(_ =>
         {
-            _logger.LogInfo("Vessel recovered!");
-            _sciradLog.Add("Vessel recovered!");
+            foreach (var kerbal in _kerfo)
+            {
+                _logger.LogInfo($"Removing kerbal license {kerbal.Id}");
+                _kerbalLicenses.Remove(kerbal.Id.ToString());
+            }
+            foreach (var part in _allPartsInVessel)
+            {
+                if (_probeLicenses.ContainsKey(part.GlobalId.ToString()))
+                {
+                    _logger.LogInfo($"Removing probe license {part.GlobalId}");
+                    _probeLicenses.Remove(part.GlobalId.ToString());
+                }
+            }
         });
         Game.Messages.Subscribe<KerbalRemovingFromRoster>(msg =>
         {
             var message = (KerbalRemovingFromRoster)msg;
-            _kerbalLicenses.Remove(message.Kerbal.Id.ToString());
+            var kerbal = message.Kerbal;
+            _logger.LogInfo($"Removing kerbal license {kerbal.Id}");
+            _kerbalLicenses.Remove(kerbal.Id.ToString());
         });
         Game.Messages.Subscribe<PartDestroyedMessage>(msg =>
         {
             var message = (PartDestroyedMessage)msg;
-            _logger.LogInfo("Rip part :(");
-            _logger.LogInfo(message.PartBehavior.SimObjectComponent.GlobalId.ToString());
-            _logger.LogInfo(message.PartBehavior.SimObjectComponent.PartName);
-            _logger.LogInfo(_probeLicenses.ContainsKey(message.PartBehavior.SimObjectComponent.GlobalId.ToString()));
+            var part = message.PartBehavior.SimObjectComponent;
+            if (_probeLicenses.ContainsKey(part.GlobalId.ToString()))
+            {
+                _logger.LogInfo($"Removing probe license {part.GlobalId}");
+                _probeLicenses.Remove(part.GlobalId.ToString());
+            }
         });
         
     }
