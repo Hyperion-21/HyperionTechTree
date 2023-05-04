@@ -5,6 +5,7 @@ using BepInEx.Logging;
 using BepInEx;
 using Newtonsoft.Json;
 using static HyperionTechTree.HyperionTechTreePlugin;
+using KSP.Messages;
 
 namespace HyperionTechTree;
 
@@ -44,6 +45,26 @@ public class KerbalProbeManager
         Game = GameManager.Instance.Game;
         _logger = HyperionTechTreePlugin.HLogger;
         UpdateKPM();
+
+        Game.Messages.Subscribe<VesselRecoveredMessage>(_ =>
+        {
+            _logger.LogInfo("Vessel recovered!");
+            _sciradLog.Add("Vessel recovered!");
+        });
+        Game.Messages.Subscribe<KerbalRemovingFromRoster>(msg =>
+        {
+            var message = (KerbalRemovingFromRoster)msg;
+            _kerbalLicenses.Remove(message.Kerbal.Id.ToString());
+        });
+        Game.Messages.Subscribe<PartDestroyedMessage>(msg =>
+        {
+            var message = (PartDestroyedMessage)msg;
+            _logger.LogInfo("Rip part :(");
+            _logger.LogInfo(message.PartBehavior.SimObjectComponent.GlobalId.ToString());
+            _logger.LogInfo(message.PartBehavior.SimObjectComponent.PartName);
+            _logger.LogInfo(_probeLicenses.ContainsKey(message.PartBehavior.SimObjectComponent.GlobalId.ToString()));
+        });
+        
     }
 
     /// <summary>

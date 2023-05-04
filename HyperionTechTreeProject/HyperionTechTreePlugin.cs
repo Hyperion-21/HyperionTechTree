@@ -52,7 +52,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static Vector2 _scrollbarPos1 = Vector2.zero;
     private static Vector2 _scrollbarPos2 = Vector2.zero;
     private static Vector2 _scrollbarPos3 = Vector2.zero;
-    private static List<string> _sciradLog = new();
+    internal static List<string> _sciradLog = new();
     private static Dictionary<string, bool> _collapsableList = new();
     private enum WindowTabs
     {
@@ -230,7 +230,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             
         }
 
-        Game.Messages.Subscribe<RevertToLaunchMessage>(msg =>
+        Game.Messages.Subscribe<RevertToLaunchMessage>(_ =>
         {
             _sciradLog.Add("<color=#ffff00>HTT currently does not handle reverting to VAB or launchpad! Things may have gone wrong. For now, please create and load quicksaves while in the VAB and before launches.</color>");
         });
@@ -238,6 +238,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         {
             _sciradLog.Add("<color=#ffff00>HTT currently does not handle reverting to VAB or launchpad! Things may have gone wrong. For now, please create and load quicksaves while in the VAB and before launches.</color>");
         });
+        
     }
 
     //[HarmonyPatch(typeof(StateReversionTracker), nameof(StateReversionTracker.OnVesselCreated))]
@@ -851,6 +852,19 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             foreach (var license in _kerbalLicenses)
             {
                 GUILayout.Label("Kerbal: " + license.Key);
+                foreach (var body in license.Value)
+                {
+                    GUILayout.Label("Body name: " + body.Key);
+                    foreach (var sit in body.Value)
+                    {
+                        GUILayout.Label("Sit: " + sit.ToString());
+                    }
+                }
+                GUILayout.Label("-----");
+            }
+            foreach (var license in _probeLicenses)
+            {
+                GUILayout.Label("Probe: " + license.Key);
                 foreach (var body in license.Value)
                 {
                     GUILayout.Label("Body name: " + body.Key);
