@@ -2,14 +2,6 @@ using Newtonsoft.Json;
 
 namespace HyperionTechTree;
 
-public static class JsonHandler
-{
-
-}
-
-
-
-
 [JsonObject(MemberSerialization.OptIn)]
 public class TechTree
 {
@@ -84,6 +76,7 @@ public class License
     [JsonProperty("bodies")] public List<LicenseBody> Bodies { get; set; }
 }
 
+[JsonObject(MemberSerialization.OptIn)]
 public class LicenseBody
 {
     [JsonProperty("bodyName")] public string BodyName { get; set; }

@@ -19,8 +19,6 @@ public class KerbalProbeManager
     private static ManualLogSource _logger;
     private static readonly char _s = System.IO.Path.DirectorySeparatorChar;
     
-    
-
     internal static VesselComponent SimVessel { get; private set; }
     internal static VesselVehicle VesselVehicle { get; private set; }
 
@@ -31,10 +29,7 @@ public class KerbalProbeManager
     private static List<KerbalInfo> _kerfo = new();
 
     internal static Dictionary<string, Dictionary<string, List<CraftSituation>>> _kerbalLicenses = new();
-
     internal static Dictionary<string, Dictionary<string, List<CraftSituation>>> _probeLicenses = new();
-
-
 
     private static List<PartComponent> _allPartsInVessel = new();
 
@@ -92,7 +87,6 @@ public class KerbalProbeManager
         UpdateParts();
         UpdateGoals();
         UpdateKerfo();
-        
     }
 
     /// <summary>
@@ -128,7 +122,6 @@ public class KerbalProbeManager
         {
             return false;
         }
-
     }
 
     private static bool UpdateParts()
@@ -147,7 +140,6 @@ public class KerbalProbeManager
     {
         _goals = GoalsList;
     }
-
 
     /// <summary>
     /// Creates an empty _situationOccurances
@@ -200,7 +192,6 @@ public class KerbalProbeManager
                     //_probeLicenses.Add(part.GlobalId.ToString(), new());
                 }
             }
-
         }
     }
 
@@ -226,7 +217,6 @@ public class KerbalProbeManager
             _logger.LogInfo($"Created key for {guid}");
 
             if (_kerbalLicenses[guid].ContainsKey(SimVessel.mainBody.Name)) return false;
-            //_kerbalLicenses[guid][_simVessel.mainBody.Name].Add(_craftSituation);
 
             foreach (var body in _goals)
             {
@@ -307,27 +297,20 @@ public class KerbalProbeManager
     {
         foreach (var kerbal in _kerbalLicenses)
         {
-            //foreach (var celes in kerbal.Value)
-            //{
-                if (_kerbalLicenses[kerbal.Key][SimVessel.mainBody.DisplayName].Contains(sit))
-                {
-                    return true;
-                }
-            //}
+            if (_kerbalLicenses[kerbal.Key][SimVessel.mainBody.DisplayName].Contains(sit))
+            {
+                return true;
+            }
         }
         foreach (var probe in _probeLicenses)
         {
-            //foreach (var celes in probe.Value)
-            //{
-                if (_probeLicenses[probe.Key][SimVessel.mainBody.DisplayName].Contains(sit))
-                {
-                    return true;
-                }
-            //}
+            if (_probeLicenses[probe.Key][SimVessel.mainBody.DisplayName].Contains(sit))
+            {
+                return true;
+            }
         }
         return false;
     }
-
 
     internal static char Checkmark(CraftSituation sit, string currentBody)
     {

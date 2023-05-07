@@ -1,27 +1,20 @@
 ﻿using BepInEx;
+using BepInEx.Logging;
 using HarmonyLib;
+using I2.Loc;
+using KSP.Game;
+using KSP.Messages;
+using KSP.OAB;
+using KSP.Sim.impl;
 using KSP.UI.Binding;
+using Newtonsoft.Json;
 using SpaceWarp;
 using SpaceWarp.API.Assets;
 using SpaceWarp.API.Mods;
 using SpaceWarp.API.UI;
 using SpaceWarp.API.UI.Appbar;
 using UnityEngine;
-using BepInEx.Logging;
-using Newtonsoft.Json;
-using KSP.OAB;
-using I2.Loc;
-using KSP.Game;
-using SpaceWarp.API.Game;
-using KSP.Sim;
-using KSP.Sim.impl;
-using KSP.UI;
-using KSP.Iteration.UI.Binding;
-using static KSP.Api.UIDataPropertyStrings.View.Vessel.Stages;
 using static HyperionTechTree.KerbalProbeManager;
-using System.Linq.Expressions;
-using KSP.Messages;
-using Game.Data;
 
 namespace HyperionTechTree;
 
@@ -29,12 +22,6 @@ namespace HyperionTechTree;
 [BepInDependency(SpaceWarpPlugin.ModGuid, SpaceWarpPlugin.ModVer)]
 public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 {
-    // REMEMBER! 
-    // Use _camelCase for private variables
-    // Use camelCase for local variables (defined in method)
-    // Use PascalCase for just about everything else
-
-    // These are useful in case some other mod wants to add a dependency to this one
     public const string ModGuid = MyPluginInfo.PLUGIN_GUID;
     public const string ModName = MyPluginInfo.PLUGIN_NAME;
     public const string ModVer = MyPluginInfo.PLUGIN_VERSION;
@@ -101,9 +88,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     protected static bool _isCraftOrbiting = false;
     // _craftSituation is never set to Orbit, use _isCraftOrbiting instead. That enum value is there for tracking situation occurances.
 
-
-    //private static Dictionary<string, List<string>> _scienceLicenses = new();
-
     private static VesselComponent _simVessel;
     private static VesselComponent _simVesselOld;
     private static string _celesOld;
@@ -121,7 +105,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static Dictionary<string, bool> _techsObtained = new();
     private static List<TechTreeNode> _techTreeNodes = new();
     internal static List<GoalsBody> GoalsList = new();
-
 
     private static float _techPointBalance = 0;
 
@@ -214,7 +197,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         Harmony.CreateAndPatchAll(typeof(HyperionTechTreePlugin));
         Harmony.CreateAndPatchAll(typeof(HyperionTechTreePlugin).Assembly);
 
-        
         GenerateTechs();
         GenerateGoals();
         KerbalProbeManagerInitialize();
@@ -234,7 +216,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             //    { CraftSituation.HighSpace, 0 },
             //    { CraftSituation.Orbit, 0 },
             //});
-            
+
         }
 
         Game.Messages.Subscribe<RevertToLaunchMessage>(_ =>
@@ -245,37 +227,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         {
             _sciradLog.Add("<color=#ffff00>HTT currently does not handle reverting to VAB or launchpad! Things may have gone wrong. For now, please create and load quicksaves while in the VAB and before launches.</color>");
         });
-        
     }
-
-    //[HarmonyPatch(typeof(StateReversionTracker), nameof(StateReversionTracker.OnVesselCreated))]
-    //[HarmonyPostfix]
-    //private static void OnVesselCreated(MessageCenterMessage msg, StateReversionTracker __instance)
-    //{
-    //    _logger.LogInfo("ON VESSEL CREATED!!!!!");
-    //    _logger.LogInfo(msg);
-    //    VesselCreatedMessage message = (VesselCreatedMessage)msg;
-    //    _logger.LogInfo(message.SerializedVessel.Guid);
-    //    //_logger.LogInfo(message.ToString());
-    //    //_logger.LogInfo(message.vehicle);
-    //    //_logger.LogInfo(message.SerializedVessel);
-    //    //_logger.LogInfo(message.serializedLocation);
-    //    //_logger.LogInfo(message.vehicle.ToString());
-    //    //_logger.LogInfo(message.vehicle.GetSimVessel());
-    //    //_logger.LogInfo(message.vehicle.GetSimVessel().Guid);
-    //}
-
-
-    //[HarmonyPatch(typeof(StateReversionTracker), nameof(StateReversionTracker.DelayedStateSave))]
-    //[HarmonyPostfix]
-    //private static void DelayedStateSave(StateReversionTracker __instance)
-    //{
-    //    //var save = CreateSave();
-    //    _logger.LogInfo("DELAYED STATE SAVE!!!!!");
-    //    if (_simVessel == null) return;
-    //    _logger.LogInfo(_simVessel.Name);
-    //    _logger.LogInfo(_simVessel.GlobalId);
-    //}
 
     private void Update()
     {
@@ -284,8 +236,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         try
         {
             _remainingTime -= Time.deltaTime * Game.UniverseView.UniverseTime.PhysicsToUniverseMultiplier;
-        } 
-        catch 
+        }
+        catch
         {
             _remainingTime -= Time.deltaTime;
         }
@@ -299,11 +251,10 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         _simVessel = SimVessel;
         _vesselVehicle = KerbalProbeManager.VesselVehicle;
         if (_simVessel == null) return;
-        
+
         _awardAmount = 0;
         foreach (var body in GoalsList)
         {
-            //_logger.LogInfo("Flag 1");
             if (body.BodyName != _simVessel.mainBody.bodyName) continue;
 
             if (_simVessel.Situation == VesselSituations.Orbiting && !CheckSituationClaimed(CraftSituation.Orbit) && _orbitScienceFlag)
@@ -342,21 +293,18 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
             if (_remainingTime < 0)
             {
-                //_logger.LogInfo("Flag 2");
                 _techPointBalance += _awardAmount;
                 _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Science complete! Gained {_awardAmount} tech points!");
                 _sciradLog.Add($"<color=#00ffff>[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Science complete! Gained {_awardAmount} tech points!</color>");
-                _situationOccurances[_simVessel.mainBody.bodyName][_orbitScienceFlag ? CraftSituation.Orbit : _craftSituation]++; 
+                _situationOccurances[_simVessel.mainBody.bodyName][_orbitScienceFlag ? CraftSituation.Orbit : _craftSituation]++;
                 _remainingTime = float.MaxValue;
                 AddSituationToLicense();
                 _scrollbarPos1 = new Vector2(0, float.MaxValue);
                 _orbitScienceFlag = false;
             }
 
-            //_logger.LogInfo("Flag 3");
             if (_isCraftOrbiting != (_simVessel.Situation == VesselSituations.Orbiting) && !_isCraftOrbiting && !CheckSituationClaimed(CraftSituation.Orbit))
             {
-                //_logger.LogInfo("Flag 4");
                 _remainingTime = ScienceSecondsOfDelay;
                 _awardAmount = (float)(body.OrbitAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.Orbit]));
                 _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft entered orbit. Maintain orbit for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
@@ -366,10 +314,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             }
             if (_craftSituation != _craftSituationOld || _simVessel.mainBody.DisplayName != _celesOld)
             {
-                //_logger.LogInfo("Flag 5");
                 if (CheckSituationClaimed(_craftSituation))
                 {
-                    //_logger.LogInfo("Flag 6");
                     _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {CraftSituationSpaced[_craftSituation]}.");
                     _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {CraftSituationSpaced[_craftSituation]}.");
                     _remainingTime = float.MaxValue;
@@ -377,44 +323,26 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 }
                 else
                 {
-                    //_logger.LogInfo("Flag 7");
                     if (_remainingTime < ScienceSecondsOfDelay)
                     {
-                        //_logger.LogInfo("Flag 8");
                         _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Previous science interrupted! Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] <color=#ff0000>Previous science interrupted!</color> Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _scrollbarPos1 = new Vector2(0, float.MaxValue);
                     }
                     else
                     {
-                        //_logger.LogInfo("Flag 9");
                         _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {CraftSituationSpaced[_craftSituationOld]} to {CraftSituationSpaced[_craftSituation]}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {CraftSituationSpaced[_craftSituationOld]} to {CraftSituationSpaced[_craftSituation]}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _scrollbarPos1 = new Vector2(0, float.MaxValue);
                     }
                     _remainingTime = ScienceSecondsOfDelay;
-                    
                 }
-                
             }
             _craftSituationOld = _craftSituation;
             _celesOld = _simVessel.mainBody.DisplayName;
             _isCraftOrbiting = _simVessel.Situation == VesselSituations.Orbiting;
-
         }
-
-        //_logger.LogInfo(_remainingTime.ToString());
-        //_logger.LogInfo(_simVessel);
-        //_logger.LogInfo(GoalsList[0]);
-        //_logger.LogInfo(_simVessel.mainBody.Name);
-        //_logger.LogInfo(_simVessel.Situation);
-        //_logger.LogInfo(_craftSituation);
-        //_logger.LogInfo(_awardAmount);
-        //_logger.LogInfo(CheckSituationClaimed(_craftSituation));
-        //_logger.LogInfo("-----");
     }
-
-    
 
     /// <summary>
     /// Generates a save file from various things, and saves it in {Plugin Folder Path}/Saves/SinglePlayer/{Active Campaign Folder Path}/{Save File Name}.json
@@ -431,7 +359,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     {
         var campaignName = Game.SaveLoadManager.ActiveCampaignFolderPath.Substring(Game.SaveLoadManager.ActiveCampaignFolderPath.LastIndexOf(_s) + 1);
         var fileName = filepath.Substring(filepath.LastIndexOf(_s) + 1);
-        //if (!Directory.Exists($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{Game.SaveLoadManager.ActiveCampaignFolderPath}")) 
         Directory.CreateDirectory($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{campaignName}");
         var serializedJson = JsonConvert.SerializeObject(CreateSave());
         File.WriteAllText($"{PluginFolderPathStatic}{_s}Saves{_s}SinglePlayer{_s}{campaignName}{_s}{fileName}", serializedJson);
@@ -451,7 +378,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         foreach (var body in GoalsList)
         {
-
             save.SituationOccurances.Add(new()
             {
                 BodyName = body.BodyName,
@@ -462,12 +388,10 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 HighSpace = _situationOccurances[body.BodyName][CraftSituation.HighSpace],
                 Orbit = _situationOccurances[body.BodyName][CraftSituation.Orbit]
             });
-
         }
 
         save.KerbalLicenses = new();
         save.ProbeLicenses = new();
-
 
         foreach (var kerbal in _kerbalLicenses)
         {
@@ -521,10 +445,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 Bodies = licenseBodies
             });
         }
-
-
         save.ActiveVesselSituation = _craftSituation.ToString();
-
         return save;
     }
 
@@ -573,7 +494,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 if (body.Orbit) sublist.Add(CraftSituation.Orbit);
                 subdict.Add(body.BodyName, sublist);
             }
-
             _kerbalLicenses.Add(license.ID, subdict);
         }
         foreach (var license in deserializedJson.ProbeLicenses)
@@ -591,21 +511,15 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 if (body.Orbit) sublist.Add(CraftSituation.Orbit);
                 subdict.Add(body.BodyName, sublist);
             }
-
             _probeLicenses.Add(license.ID, subdict);
         }
         _craftSituation = (CraftSituation)Enum.Parse(typeof(CraftSituation), deserializedJson.ActiveVesselSituation);
         _craftSituationOld = _craftSituation;
-        
+
         _sciradLog.Add("--- LOADING SAVE ---");
 
         return true;
     }
-
-
-    
-
-
 
     /// <summary>
     /// Draws a simple UI window when <code>this._isWindowOpen</code> is set to <code>true</code>.
@@ -656,7 +570,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
     private static void FillWindow(int windowID)
     {
         Color defaultColor = GUI.backgroundColor;
-        GUILayout.Label("", GUILayout.Width(_windowWidth), GUILayout.Height(_windowHeight));        
+        GUILayout.Label("", GUILayout.Width(_windowWidth), GUILayout.Height(_windowHeight));
         GUI.DrawTexture(new Rect(0, 0, 120, 10000), GetTextureFromColor(new Color(1f, 1f, 1f, 1f)));
         GUI.DrawTexture(new Rect(10, 10, 100, 25), GetTextureFromColor(new Color(0.25f, 0.25f, 0.25f, 1f)));
 
@@ -669,7 +583,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         if (GUI.Button(new Rect(10, 80, 100, 25), "Goals")) _windowTab = WindowTabs.Goals;
         GUI.backgroundColor = (_windowTab == WindowTabs.ModInfo) ? Color.yellow : Color.blue;
         if (GUI.Button(new Rect(10, 115, 100, 25), "Mod Info")) _windowTab = WindowTabs.ModInfo;
-        
+
         GUI.backgroundColor = Color.red;
         if (GUI.Button(new Rect(_windowWidth - 10, 10, 20, 20), "X")) _isWindowOpen = false;
 
@@ -682,14 +596,14 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 DrawGoalsWindow();
                 break;
             case WindowTabs.ModInfo:
-                DrawModInfoWindow(); 
+                DrawModInfoWindow();
                 break;
             default:
                 GUI.Label(new Rect(150, 150, 150, 150), "ERROR: Couldn't find tab!");
                 _logger.LogError("Tried to open illegal tab!");
                 break;
         }
-        
+
         void DrawTechTreeWindow()
         {
             GUILayout.BeginHorizontal();
@@ -742,19 +656,15 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 if (File.Exists($"{_path}{_s}assets{_s}images{_s}{node.NodeID}.png")) texture = AssetManager.GetAsset<Texture2D>($"{_swPath}/images/{node.NodeID}.png");
                 else
                 {
-                    // decomment this line once all icons are added
-                    // probably also want to make it not be called every frame
-                    //_logger.LogWarning($"Could not find button texture for node {node.NodeID}!");
+                    _logger.LogWarning($"Could not find button texture for node {node.NodeID}!");
                     texture = Texture2D.blackTexture;
                 }
 
                 if (GUI.Button(new Rect(node.PosX, node.PosY, ButtonSize, ButtonSize), texture)) _focusedNode = node;
             }
             GUI.backgroundColor = defaultColor;
-            // GUILayout.Space(_techTreey2 + 10);
             if (_focusedNode != null)
             {
-                //GUI.Label(new Rect(_techTreex2 + 10, _techTreey1, 600, 10000), $"Selected Node: {_focusedNode.NodeID}");
                 GUILayout.Label($"Selected Node: {_focusedNode.NodeID}");
 
                 string requirementPrefix;
@@ -769,7 +679,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                     i--;
                     if (i > 0) dependencyList = String.Concat(dependencyList, ", ");
                 }
-                //GUI.Label(new Rect(_techTreex2 + 10, _techTreey1 + 20, 600, 10000), requirementPrefix + dependencyList);
                 GUILayout.Label(requirementPrefix + dependencyList);
 
                 string partList = "";
@@ -783,12 +692,10 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                     i--;
                     if (i > 0) partList = $"{partList}, ";
                 }
-                //GUI.Label(new Rect(_techTreex2 + 10, _techTreey1 + 40, 600, 10000), "Unlocks Parts: " + partList);
                 GUILayout.Label("Unlocks Parts: " + partList);
 
                 if (_techsObtained[_focusedNode.NodeID])
                 {
-                    //GUI.Label(new Rect(_techTreex1, _techTreey2 + 10, 1000, 10000), "You already own this tech!");
                     GUILayout.Label("You already own this tech!");
                 }
                 else
@@ -803,13 +710,11 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                             if (_focusedNode.RequiresAll)
                             {
                                 skipButtonFlag = true;
-                                //GUI.Label(new Rect(_techTreex1, _techTreey2 + 10 + 20 * (_focusedNode.Dependencies.Count - (j + 1)), 1000, 10000), $"Missing dependency {dependency}!");
                                 GUILayout.Label($"Missing requirement tech: {dependency}!");
                             }
                             if (!_focusedNode.RequiresAll && j == 0)
                             {
                                 skipButtonFlag = true;
-                                //GUI.Label(new Rect(_techTreex1, _techTreey2 + 10, 1000, 10000), "Missing all dependencies!");
                                 GUILayout.Label("Missing all requirement techs!");
                             }
                         }
@@ -838,7 +743,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
         }
-        
+
         void DrawGoalsWindow()
         {
             GUI.backgroundColor = defaultColor;
@@ -855,7 +760,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             GUI.DrawTexture(new Rect(140, 562, 419, 5), GetTextureFromColor(new Color(0f, 0f, 0f, 1f)));
             if (_remainingTime < ScienceSecondsOfDelay && _remainingTime > 0)
             {
-                
                 var roundedTime = Math.Round(_remainingTime, 1).ToString();
                 if (roundedTime.Length == 1) roundedTime += ".0";
 
@@ -889,29 +793,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                             GUILayout.Label($"|-- {name.Value}: {Checkmark(name.Key, goal.BodyName)} ({_situationOccurances[goal.BodyName][name.Key]})");
                             break;
                     }
-                    //GUILayout.Label($"|-- {name.Value}: {Checkmark(CraftSituation.Landed)} ({_situationOccurances[goal.BodyName][CraftSituation.Landed]})");
                 }
-
-
-                //GUILayout.Label($"|-- Landed: {_situationOccurances[goal.BodyName][CraftSituation.Landed]} {Checkmark(CraftSituation.Landed)}");
-                //GUILayout.Label($"|-- Low Atmo: {_situationOccurances[goal.BodyName][CraftSituation.LowAtmosphere]} {Checkmark(CraftSituation.LowAtmosphere)}");
-                //GUILayout.Label($"|-- High Atmo: {_situationOccurances[goal.BodyName][CraftSituation.HighAtmosphere]} {Checkmark(CraftSituation.HighAtmosphere)}");
-                //GUILayout.Label($"|-- Low Space: {_situationOccurances[goal.BodyName][CraftSituation.LowSpace]} {Checkmark(CraftSituation.LowSpace)}");
-                //GUILayout.Label($"|-- High Space: {_situationOccurances[goal.BodyName][CraftSituation.HighSpace]} {Checkmark(CraftSituation.HighSpace)}");
-                //GUILayout.Label($"|-- Orbit: {_situationOccurances[goal.BodyName][CraftSituation.Orbit]} {Checkmark(CraftSituation.Orbit)}");
-                //foreach (var license in _kerbalLicenses)
-                //{
-                //    GUILayout.Label($"license debug data: 1| {license.Key}");
-                //    foreach (var license2 in license.Value)
-                //    {
-                //        GUILayout.Label("2| " + license2.Key);
-                //        foreach (var license3 in license2.Value)
-                //        {
-                //            GUILayout.Label("3| " + license3.ToString());
-                //        }
-                        
-                //    }
-                //}
             }
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
@@ -957,7 +839,6 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
         }
-
         GUI.DragWindow(new Rect(0, 0, 10000, 10000));
     }
 
@@ -1055,11 +936,8 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         }
     }
 
-
-    
-
-        // Parts of the next two methods are copy-pasted from VChristof's InteractiveFilter mod
-        [HarmonyPatch(typeof(AssemblyFilterContainer), nameof(AssemblyFilterContainer.AddButton))]
+    // Parts of the next two methods are copy-pasted from VChristof's InteractiveFilter mod
+    [HarmonyPatch(typeof(AssemblyFilterContainer), nameof(AssemblyFilterContainer.AddButton))]
     class PatchAssemblyFilterContainer
     {
         [HarmonyPostfix]
@@ -1151,6 +1029,5 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
         {
             return "invalid";
         }
-        
     }
 }
