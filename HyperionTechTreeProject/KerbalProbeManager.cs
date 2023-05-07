@@ -307,23 +307,23 @@ public class KerbalProbeManager
     {
         foreach (var kerbal in _kerbalLicenses)
         {
-            foreach (var celes in kerbal.Value)
-            {
-                if (_kerbalLicenses[kerbal.Key][celes.Key].Contains(sit))
+            //foreach (var celes in kerbal.Value)
+            //{
+                if (_kerbalLicenses[kerbal.Key][SimVessel.mainBody.DisplayName].Contains(sit))
                 {
                     return true;
                 }
-            }
+            //}
         }
         foreach (var probe in _probeLicenses)
         {
-            foreach (var celes in probe.Value)
-            {
-                if (_probeLicenses[probe.Key][celes.Key].Contains(sit))
+            //foreach (var celes in probe.Value)
+            //{
+                if (_probeLicenses[probe.Key][SimVessel.mainBody.DisplayName].Contains(sit))
                 {
                     return true;
                 }
-            }
+            //}
         }
         return false;
     }

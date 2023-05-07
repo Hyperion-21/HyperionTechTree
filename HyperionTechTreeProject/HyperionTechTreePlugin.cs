@@ -106,6 +106,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
     private static VesselComponent _simVessel;
     private static VesselComponent _simVesselOld;
+    private static string _celesOld;
     private static VesselVehicle _vesselVehicle;
 
     private static Texture2D _tex = new(1, 1);
@@ -308,32 +309,35 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             if (_simVessel.Situation == VesselSituations.Orbiting && !CheckSituationClaimed(CraftSituation.Orbit) && _orbitScienceFlag)
             {
                 _awardAmount = (float)(body.OrbitAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.Orbit]));
-
             }
-            else if ((int)_simVessel.Situation <= 2 && body.HasSurface)
+            else
             {
-                _craftSituation = CraftSituation.Landed;
-                _awardAmount = (float)(body.LandedAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.Landed]));
-            }
-            else if (_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel < body.AtmosphereThreshold && (int)_simVessel.Situation > 2 && body.HasAtmosphere)
-            {
-                _craftSituation = CraftSituation.LowAtmosphere;
-                _awardAmount = (float)(body.LowAtmosphereAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.LowAtmosphere]));
-            }
-            else if (_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel >= body.AtmosphereThreshold && body.HasAtmosphere)
-            {
-                _craftSituation = CraftSituation.HighAtmosphere;
-                _awardAmount = (float)(body.HighAtmosphereAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.HighAtmosphere]));
-            }
-            else if (!_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel < body.SpaceThreshold)
-            {
-                _craftSituation = CraftSituation.LowSpace;
-                _awardAmount = (float)(body.LowSpaceAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.LowSpace]));
-            }
-            else if (!_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel >= body.SpaceThreshold)
-            {
-                _craftSituation = CraftSituation.HighSpace;
-                _awardAmount = (float)(body.HighSpaceAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.HighSpace]));
+                _orbitScienceFlag = false;
+                if ((int)_simVessel.Situation <= 2 && body.HasSurface)
+                {
+                    _craftSituation = CraftSituation.Landed;
+                    _awardAmount = (float)(body.LandedAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.Landed]));
+                }
+                else if (_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel < body.AtmosphereThreshold && (int)_simVessel.Situation > 2 && body.HasAtmosphere)
+                {
+                    _craftSituation = CraftSituation.LowAtmosphere;
+                    _awardAmount = (float)(body.LowAtmosphereAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.LowAtmosphere]));
+                }
+                else if (_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel >= body.AtmosphereThreshold && body.HasAtmosphere)
+                {
+                    _craftSituation = CraftSituation.HighAtmosphere;
+                    _awardAmount = (float)(body.HighAtmosphereAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.HighAtmosphere]));
+                }
+                else if (!_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel < body.SpaceThreshold)
+                {
+                    _craftSituation = CraftSituation.LowSpace;
+                    _awardAmount = (float)(body.LowSpaceAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.LowSpace]));
+                }
+                else if (!_simVessel.IsInAtmosphere && _simVessel.AltitudeFromSeaLevel >= body.SpaceThreshold)
+                {
+                    _craftSituation = CraftSituation.HighSpace;
+                    _awardAmount = (float)(body.HighSpaceAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.HighSpace]));
+                }
             }
 
             if (_remainingTime < 0)
@@ -350,7 +354,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             }
 
             //_logger.LogInfo("Flag 3");
-            if (_isCraftOrbiting != (_simVessel.Situation == VesselSituations.Orbiting) && !_isCraftOrbiting)
+            if (_isCraftOrbiting != (_simVessel.Situation == VesselSituations.Orbiting) && !_isCraftOrbiting && !CheckSituationClaimed(CraftSituation.Orbit))
             {
                 //_logger.LogInfo("Flag 4");
                 _remainingTime = ScienceSecondsOfDelay;
@@ -360,14 +364,14 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 _scrollbarPos1 = new Vector2(0, float.MaxValue);
                 _orbitScienceFlag = true;
             }
-            if (_craftSituation != _craftSituationOld)
+            if (_craftSituation != _craftSituationOld || _simVessel.mainBody.DisplayName != _celesOld)
             {
                 //_logger.LogInfo("Flag 5");
                 if (CheckSituationClaimed(_craftSituation))
                 {
                     //_logger.LogInfo("Flag 6");
-                    _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {CraftSituationSpaced[_craftSituationOld]}. Going to {CraftSituationSpaced[_craftSituation]}.");
-                    _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {CraftSituationSpaced[_craftSituationOld]}. Going to {CraftSituationSpaced[_craftSituation]}.");
+                    _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {CraftSituationSpaced[_craftSituation]}.");
+                    _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {CraftSituationSpaced[_craftSituation]}.");
                     _remainingTime = float.MaxValue;
                     _scrollbarPos1 = new Vector2(0, float.MaxValue);
                 }
@@ -394,6 +398,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 
             }
             _craftSituationOld = _craftSituation;
+            _celesOld = _simVessel.mainBody.DisplayName;
             _isCraftOrbiting = _simVessel.Situation == VesselSituations.Orbiting;
 
         }
