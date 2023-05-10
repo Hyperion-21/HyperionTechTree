@@ -314,7 +314,7 @@ public class KerbalProbeManager
 
     internal static char Checkmark(CraftSituation sit, string currentBody)
     {
-        if (Game?.GlobalGameState?.GetState() != GameState.FlightView) return ' ';
+        if (Game?.GlobalGameState?.GetState() != GameState.FlightView || SimVessel == null) return ' ';
         foreach (var part in SimVessel.GetControlOwner()._partOwner._parts.PartsEnumerable)
         {
             foreach (var kerbal in Game.KerbalManager._kerbalRosterManager.GetAllKerbalsInSimObject(part.GlobalId))

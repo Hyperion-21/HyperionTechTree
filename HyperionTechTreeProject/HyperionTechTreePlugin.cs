@@ -303,21 +303,35 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 _orbitScienceFlag = false;
             }
 
+            if (_situationOccurances[body.BodyName][_craftSituation] >= 4 && !CheckSituationClaimed(_craftSituation))
+            {
+                _situationOccurances[_simVessel.mainBody.bodyName][_craftSituation]++;
+                AddSituationToLicense();
+            }
+
             if (_isCraftOrbiting != (_simVessel.Situation == VesselSituations.Orbiting) && !_isCraftOrbiting && !CheckSituationClaimed(CraftSituation.Orbit))
             {
-                _remainingTime = ScienceSecondsOfDelay;
-                _awardAmount = (float)(body.OrbitAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.Orbit]));
-                _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft entered orbit. Maintain orbit for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
-                _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft entered orbit. Maintain orbit for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
-                _scrollbarPos1 = new Vector2(0, float.MaxValue);
-                _orbitScienceFlag = true;
+                if (_situationOccurances[body.BodyName][CraftSituation.Orbit] >= 4)
+                {
+                    _situationOccurances[_simVessel.mainBody.bodyName][CraftSituation.Orbit]++;
+                    AddSituationToLicense();
+                } 
+                else
+                {
+                    _remainingTime = ScienceSecondsOfDelay;
+                    _awardAmount = (float)(body.OrbitAward / Math.Pow(2.0, (double)_situationOccurances[body.BodyName][CraftSituation.Orbit]));
+                    _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft entered orbit. Maintain orbit for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                    _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft entered orbit. Maintain orbit for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                    _scrollbarPos1 = new Vector2(0, float.MaxValue);
+                    _orbitScienceFlag = true;
+                }
             }
-            if (_craftSituation != _craftSituationOld || _simVessel.mainBody.DisplayName != _celesOld)
+            if ((_craftSituation != _craftSituationOld || _simVessel.mainBody.DisplayName != _celesOld) && _situationOccurances[body.BodyName][_craftSituation] < 4 && _awardAmount != 0)
             {
                 if (CheckSituationClaimed(_craftSituation))
                 {
                     _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {CraftSituationSpaced[_craftSituation]}.");
-                    _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {CraftSituationSpaced[_craftSituation]}.");
+                    //_sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Already claimed situation {CraftSituationSpaced[_craftSituation]}.");
                     _remainingTime = float.MaxValue;
                     _scrollbarPos1 = new Vector2(0, float.MaxValue);
                 }
@@ -325,14 +339,14 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 {
                     if (_remainingTime < ScienceSecondsOfDelay)
                     {
-                        _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Previous science interrupted! Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
-                        _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] <color=#ff0000>Previous science interrupted!</color> Going from {_craftSituationOld} to {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                        _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Previous science interrupted! Going from {_celesOld} {_craftSituationOld} to {_simVessel.mainBody.Name} {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                        _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] <color=#ff0000>Previous science interrupted!</color> Going from {_celesOld} {_craftSituationOld} to {_simVessel.mainBody.Name} {_craftSituation}. Maintain current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _scrollbarPos1 = new Vector2(0, float.MaxValue);
                     }
                     else
                     {
-                        _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {CraftSituationSpaced[_craftSituationOld]} to {CraftSituationSpaced[_craftSituation]}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
-                        _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {CraftSituationSpaced[_craftSituationOld]} to {CraftSituationSpaced[_craftSituation]}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                        _logger.LogInfo($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {_celesOld} {CraftSituationSpaced[_craftSituationOld]} to {_simVessel.mainBody.Name} {CraftSituationSpaced[_craftSituation]}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
+                        _sciradLog.Add($"[{GetHumanReadableUT(GameManager.Instance.Game.UniverseModel.UniversalTime)}] Craft changing states. Going from {_celesOld} {CraftSituationSpaced[_craftSituationOld]} to {_simVessel.mainBody.Name} {CraftSituationSpaced[_craftSituation]}. Maintain the current state for {ScienceSecondsOfDelay}s to gain {_awardAmount} tech points!");
                         _scrollbarPos1 = new Vector2(0, float.MaxValue);
                     }
                     _remainingTime = ScienceSecondsOfDelay;
@@ -576,7 +590,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
 
         GUIStyle style = new GUIStyle { alignment = TextAnchor.MiddleCenter };
         style.normal.textColor = Color.white;
-        GUI.Label(new Rect(10, 10, 100, 25), _techPointBalance.ToString(), style);
+        GUI.Label(new Rect(10, 10, 100, 25), Math.Round(_techPointBalance, 1).ToString(), style);
         GUI.backgroundColor = (_windowTab == WindowTabs.TechTree) ? Color.yellow : Color.blue;
         if (GUI.Button(new Rect(10, 45, 100, 25), "Tech Tree")) _windowTab = WindowTabs.TechTree;
         GUI.backgroundColor = (_windowTab == WindowTabs.Goals) ? Color.yellow : Color.blue;
@@ -723,7 +737,7 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                     {
                         defaultColor = GUI.backgroundColor;
                         GUI.backgroundColor = _focusedNode.Cost > _techPointBalance ? Color.red : Color.blue;
-                        if (GUILayout.Button(_focusedNode.Cost > _techPointBalance ? $"{_focusedNode.NodeID} is too expensive! Costs {_focusedNode.Cost} Tech Points (You have {_techPointBalance})" : $"Unlock {_focusedNode.NodeID}. Costs {_focusedNode.Cost} Tech Points (You have {_techPointBalance})"))
+                        if (GUILayout.Button(_focusedNode.Cost > _techPointBalance ? $"{_focusedNode.NodeID} is too expensive! Costs {_focusedNode.Cost} Tech Points (You have {Math.Round(_techPointBalance, 1)})" : $"Unlock {_focusedNode.NodeID}. Costs {_focusedNode.Cost} Tech Points (You have {Math.Round(_techPointBalance, 1)})"))
                         {
                             if (_focusedNode.Cost <= _techPointBalance)
                             {
@@ -751,28 +765,30 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
             GUILayout.Space(130);
             GUILayout.BeginVertical();
             GUILayout.Space(-_windowHeight);
+            GUILayout.Label("Science Radio");
             _scrollbarPos1 = GUILayout.BeginScrollView(_scrollbarPos1, false, false, GUILayout.Width(200), GUILayout.Height(500));
             foreach (var log in _sciradLog)
             {
                 GUILayout.Label(log);
             }
             GUILayout.EndScrollView();
-            GUI.DrawTexture(new Rect(140, 562, 419, 5), GetTextureFromColor(new Color(0f, 0f, 0f, 1f)));
+            GUI.DrawTexture(new Rect(140, 592, 419, 5), GetTextureFromColor(new Color(0f, 0f, 0f, 1f)));
             if (_remainingTime < ScienceSecondsOfDelay && _remainingTime > 0)
             {
                 var roundedTime = Math.Round(_remainingTime, 1).ToString();
                 if (roundedTime.Length == 1) roundedTime += ".0";
 
-                GUI.Label(new Rect(149, 535, 400, 40), $"{roundedTime}s Remaining | {_awardAmount} Tech Points");
-                GUI.DrawTexture(new Rect(140, 562, 419 - (419f / ScienceSecondsOfDelay * _remainingTime), 5), GetTextureFromColor(new Color(1f, 1f, 1f, 1f)));
+                GUI.Label(new Rect(149, 565, 400, 40), $"{roundedTime}s Remaining | {_awardAmount} Tech Points");
+                GUI.DrawTexture(new Rect(140, 592, 419 - (419f / ScienceSecondsOfDelay * _remainingTime), 5), GetTextureFromColor(new Color(1f, 1f, 1f, 1f)));
             }
             else
             {
-                GUI.Label(new Rect(149, 535, 400, 40), "Not currently doing science.");
+                GUI.Label(new Rect(149, 565, 400, 40), "Not currently doing science.");
             }
             GUILayout.EndVertical();
             GUILayout.BeginVertical();
             GUILayout.Space(-_windowHeight);
+            GUILayout.Label("History");
             _scrollbarPos2 = GUILayout.BeginScrollView(_scrollbarPos2, false, false, GUILayout.Width(200), GUILayout.Height(500));
             foreach (var goal in GoalsList)
             {
@@ -782,17 +798,36 @@ public class HyperionTechTreePlugin : BaseSpaceWarpPlugin
                 GUI.backgroundColor = defaultColor;
                 if (!_collapsableList[goal.BodyName]) continue;
 
-                foreach (var name in CraftSituationSpacedShort)
+                if (Game.GlobalGameState.GetState() == GameState.FlightView && _simVessel != null)
                 {
-                    switch (Game.GlobalGameState.GetState())
+                    if (goal.HasSurface && goal.BodyName != "Kerbin")
                     {
-                        default:
-                            GUILayout.Label($"|-- {name.Value}: {_situationOccurances[goal.BodyName][name.Key]}");
-                            break;
-                        case GameState.FlightView:
-                            GUILayout.Label($"|-- {name.Value}: {Checkmark(name.Key, goal.BodyName)} ({_situationOccurances[goal.BodyName][name.Key]})");
-                            break;
+                        GUILayout.Label($"|-- Landed: {Checkmark(CraftSituation.Landed, goal.BodyName)} ({_situationOccurances[goal.BodyName][CraftSituation.Landed]})");
                     }
+                    if (goal.HasAtmosphere)
+                    {
+                        GUILayout.Label($"|-- Low Atmo: {Checkmark(CraftSituation.LowAtmosphere, goal.BodyName)} ({_situationOccurances[goal.BodyName][CraftSituation.LowAtmosphere]})");
+                        GUILayout.Label($"|-- High Atmo: {Checkmark(CraftSituation.HighAtmosphere, goal.BodyName)} ({_situationOccurances[goal.BodyName][CraftSituation.HighAtmosphere]})");
+                    }
+                    GUILayout.Label($"|-- Low Space: {Checkmark(CraftSituation.LowSpace, goal.BodyName)} ({_situationOccurances[goal.BodyName][CraftSituation.LowSpace]})");
+                    GUILayout.Label($"|-- High Space: {Checkmark(CraftSituation.HighSpace, goal.BodyName)} ({_situationOccurances[goal.BodyName][CraftSituation.HighSpace]})");
+                    GUILayout.Label($"|-- Orbit: {Checkmark(CraftSituation.Orbit, goal.BodyName)} ({_situationOccurances[goal.BodyName][CraftSituation.Orbit]})");
+
+                }
+                else
+                {
+                    if (goal.HasSurface && goal.BodyName != "Kerbin")
+                    {
+                        GUILayout.Label($"|-- Landed: {_situationOccurances[goal.BodyName][CraftSituation.Landed]}");
+                    }
+                    if (goal.HasAtmosphere)
+                    {
+                        GUILayout.Label($"|-- Low Atmo: {_situationOccurances[goal.BodyName][CraftSituation.LowAtmosphere]}");
+                        GUILayout.Label($"|-- High Atmo: {_situationOccurances[goal.BodyName][CraftSituation.HighAtmosphere]}");
+                    }
+                    GUILayout.Label($"|-- Low Space: {_situationOccurances[goal.BodyName][CraftSituation.LowSpace]}");
+                    GUILayout.Label($"|-- High Space: {_situationOccurances[goal.BodyName][CraftSituation.HighSpace]}");
+                    GUILayout.Label($"|-- Orbit: {_situationOccurances[goal.BodyName][CraftSituation.Orbit]}");
                 }
             }
             GUILayout.EndScrollView();
