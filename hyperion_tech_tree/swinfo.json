@@ -4,7 +4,7 @@
   "name": "Hyperion Tech Tree",
   "description": "A modded tech tree independent of the stock KSP2 tech system.",
   "source": "https://github.com/Hyperion-21/HyperionTechTree",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "version_check": "https://raw.githubusercontent.com/Hyperion-21/HyperionTechTree/main/hyperion_tech_tree/swinfo.json",
   "dependencies": [
     {
@@ -16,7 +16,7 @@
     }
   ],
   "ksp2_version": {
-    "min": "0.1.0",
+    "min": "0.1.2",
     "max": "0.1.*"
   }
 }

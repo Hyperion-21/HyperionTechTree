@@ -8,7 +8,7 @@
         <AssemblyName>com.github.Hyperion-21.HyperionTechTree</AssemblyName>
         <Product>Hyperion Tech Tree</Product>
         <Description>A modded tech tree independent of the stock KSP2 tech system.</Description>
-        <Version>0.0.1</Version>
+        <Version>0.1.0</Version>
         <RestoreAdditionalProjectSources>
             https://api.nuget.org/v3/index.json;
             https://nuget.spacewarp.org/v3/index.json
