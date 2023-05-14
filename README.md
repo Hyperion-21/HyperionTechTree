@@ -11,9 +11,9 @@ For players, the mod should be mostly plug-and-play. Technical details relating 
 
 Both in the VAB and in-flight, there should be an app tray button for Hyperion Tech Tree. Clicking this menu will open a window. Currently, there are two tabs: Tech Tree and Goals. The tech tree tab lets the player unlock tech nodes and unlock parts. The goals tab lets the player see science-gathering information, such as where the player has been.
 
-![image](https://user-images.githubusercontent.com/69665635/232379753-b31fd32a-f4c9-4e8c-9186-6618f7368af4.png)
+![image](https://github.com/Hyperion-21/HyperionTechTree/assets/69665635/2407a3e2-2242-4ec8-bc03-592272ebb00f)
 
-![image](https://user-images.githubusercontent.com/69665635/232380313-148214a9-4e5c-47f8-9a80-a84e11377a80.png)
+![image](https://github.com/Hyperion-21/HyperionTechTree/assets/69665635/5b79e064-e6d1-4643-b7ef-7bf79ceb4fa7)
 
 ## Modding Guide
 
