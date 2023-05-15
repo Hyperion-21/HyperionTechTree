@@ -3,7 +3,7 @@
     "nodes": [
         {
             "nodeID": "Heavy Rocketry",
-            "parts": [ "milrin-07", "proceduralEngineCoverM" ]
+            "parts": [ "Milrin-07", "ProceduralEngineCoverM" ]
         },
         {
             "nodeID": "Advanced Flight Control",
@@ -11,7 +11,7 @@
         },
         {
             "nodeID": "Heavier Rocketry",
-            "parts": [ "Reiptor-12", "proceduralEngineCoverL" ]
+            "parts": [ "Reiptor-12", "ProceduralEngineCoverL" ]
         },
         {
             "nodeID": "Supersonic Flight",
@@ -19,7 +19,7 @@
         },
         {
             "nodeID": "Very Heavy Rocketry",
-            "parts": [ "BE-4", "proceduralEngineCoverXL", "Reiptor-12Vac" ]
+            "parts": [ "BE-4", "ProceduralEngineCoverXL", "Reiptor-12Vac" ]
         }
     ]
 }
