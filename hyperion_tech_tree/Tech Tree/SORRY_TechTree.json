@@ -1,0 +1,9 @@
+{
+    "modVersion": "0.1.0",
+    "nodes": [
+        {
+            "nodeID": "somewhere",
+            "parts": [ "gridfin", "rcsNosecone", "Milrin-07", "Reiptor-12", "cover_5m_0-5-10", "ProceduralEngineCover", "BE-4", "Reiptor-12Vac", "GridfinHex", "InlineGridfinBase", "InlineGridfinBase_2.5m" ]
+        }
+    ]
+}
