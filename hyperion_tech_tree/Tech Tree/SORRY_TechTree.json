@@ -2,7 +2,7 @@
     "modVersion": "0.1.0",
     "nodes": [
         {
-            "nodeID": "Heavier Rocketry",
+            "nodeID": "Heavy Rocketry",
             "parts": [ "milrin-07", "proceduralEngineCoverM" ]
         },
         {
