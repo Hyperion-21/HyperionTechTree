@@ -2,8 +2,24 @@
     "modVersion": "0.1.0",
     "nodes": [
         {
-            "nodeID": "somewhere",
-            "parts": [ "gridfin", "rcsNosecone", "Milrin-07", "Reiptor-12", "cover_5m_0-5-10", "ProceduralEngineCover", "BE-4", "Reiptor-12Vac", "GridfinHex", "InlineGridfinBase", "InlineGridfinBase_2.5m" ]
+            "nodeID": "Heavier Rocketry",
+            "parts": [ "milrin-07", "proceduralEngineCoverM" ]
+        },
+        {
+            "nodeID": "Advanced Flight Control",
+            "parts": [ "rcsNoseconeXS", "rcsNoseconeS", "rcsNoseconeM", "rcsNoseconeL", "rcsNoseconeXL" ]
+        },
+        {
+            "nodeID": "Heavier Rocketry",
+            "parts": [ "Reiptor-12", "proceduralEngineCoverL" ]
+        },
+        {
+            "nodeID": "Supersonic Flight",
+            "parts": [ "gridfinS", "gridfinM", "gridfinL" ]
+        },
+        {
+            "nodeID": "Very Heavy Rocketry",
+            "parts": [ "BE-4", "proceduralEngineCoverXL", "Reiptor-12Vac" ]
         }
     ]
 }
